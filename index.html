@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Thanh xuân tuổi 18</title>
+	<link rel="stylesheet" type="text/css" href="format.css">
+	<style>
+		html{
+    		scroll-behavior: smooth;
+		}
+		body{
+    		height: 100%;
+    		font-family: Verdana;
+    		margin: 0;
+		}
+		body.lock{
+    		overflow: hidden;
+		}
+		img{
+    		max-width: 100%;
+    		height: auto;
+    		border-radius: 10px;
+    		margin-top: 10px;
+		}
+		article{
+    		scroll-margin-top: 50px;
+    		margin-bottom: 20px;
+    		padding: 15px;
+    		border-radius: 10px;
+    		box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+		}
+		article p:first-child{
+    		font-size: 20px;
+    		font-weight: bold;
+		}
+		form{
+			scroll-margin-top: 50px;
+    		margin-bottom: 20px;
+    		padding: 15px;
+    		border-radius: 10px;
+    		box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+		}
+	</style>
+</head>
+<body>
+
+	<header id="top" class="header-bg">
+		<div class="header">
+			<div class="left-header">
+				<img src="assets/general/logo.png" alt="logo" class="logo">
+			</div>
+			<div class="right-header">
+				<p class="style1">Dấu ấn tuổi 18 - Nơi thanh xuân dừng lại</p>
+				<p class="style2">Lưu giữ khoảnh khắc, bước tiếp ước mơ</p>
+			</div>
+		</div>
+	</header>
+	
+
+	<div class="naviLayout">
+		<div class="menu" onclick="toggleMenu()">☰</div>
+		<nav id="navibar" class="navibar" align="center">
+			<div class="navi-card">
+				<a class="navi" href="#confs">Thổ lộ </a>
+			</div>
+			<div class="navi-card">
+				<a class="navi" href="#moments">Khoảnh khắc</a>
+			</div>
+			<div class="navi-card">
+				<a id="openGallery" class="open-popup" href="#galleryPopup">Ảnh và Video</a>
+			</div>
+			<div class="navi-card">
+				<a class="navi" href="#gratitude">Tri ân</a>
+			</div>
+			<div class="navi-card">
+				<a class="navi" href="#dream">Ước mơ</a>
+			</div>
+			<div class="navi-card">
+				<a class="navi" href="#wish">Lời chúc</a>
+			</div>
+			<div class="navi-card">
+				<a class="navi" href="#form">Gửi yêu cầu</a>
+			</div>
+			<button id="themeToggle">🌙</button>
+		</nav>
+	</div>
+
+	<main class="container">
+
+		<!-- sidebar -->
+		<aside class="sidebar">
+			<!-- sidebar-header -->
+			<div class="sidebar-header">
+				<img src="assets/general/introduce.jpg" alt="giới thiệu lớp">
+				<h2>12A2</h2>
+			</div>
+			<!-- main-sidebar -->
+			<div class="sidebar-main">
+				<div class="quote-box">
+					<p class="quote-text"></p>
+				</div>
+				<div class="info-card">
+					<h3>Thông tin lớp:</h3>
+					<p>Niên khóa: 2023-2026</p>
+					<p>Giáo viên chủ nhiệm: Thầy Thuyên</p>
+					<p>Sĩ số: 42</p>
+				</div>
+				<div>
+					<ul class="student-list">
+						<li data-id="1" >01. Đặng Trần Hùng Anh</li>
+						<li data-id="2" >02. Tôn Thất Bách</li>
+						<li data-id="3" >03. Nguyễn Bôn</li>
+						<li data-id="4" >04. Nguyễn Lưu Hoàng Chương</li>
+						<li data-id="5" >05. Nguyễn Tiến Dũng</li>
+						<li data-id="6" >06. Trương Trung Dũng</li>
+						<li data-id="7" >07. Nguyễn Anh Quang Duy</li>
+						<li data-id="8" >08. Trần Đình Dương</li>
+						<li data-id="9" >09. Đỗ Lê Minh Đức</li>
+						<li data-id="10">10. Nguyễn Anh Hào</li>
+						<li data-id="11">11. Trương Hiệu</li>
+						<li data-id="12">12. Mai Vũ Anh Huy</li>
+						<li data-id="13">13. Nguyễn Hữu Huy</li>
+						<li data-id="14">14. Nguyễn Tuấn Kiệt</li>
+						<li data-id="15">15. Bùi Diệu Linh</li>
+						<li data-id="16">16. Lê Nguyễn Ngọc Linh</li>
+						<li data-id="17">17. Ngô Phước Hoàng Long</li>
+						<li data-id="18">18. Lê Ngô Bảo Minh</li>
+						<li data-id="19">19. Trần Duy Minh</li>
+						<li data-id="20">20. Đỗ Gia Ngĩa</li>
+						<li data-id="21">21. Bùi Nguyễn Bảo Nguyên</li>
+						<li data-id="22">22. Nguyễn Minh Nhật</li>
+						<li data-id="23">23. Lê Nguyễn Ý Nhi</li>
+						<li data-id="24">24. Nguyễn Phạm Thị Quỳnh Như</li>
+						<li data-id="25">25. Trương Văn Pháp</li>
+						<li data-id="26">26. Nguyễn Đắc Phúc</li>
+						<li data-id="27">27. Trương Công Phúc</li>
+						<li data-id="28">28. Lê Thanh Phương</li>
+						<li data-id="29">29. Lê Thị Hà Phương</li>
+						<li data-id="30">30. Hoàng Minh Quân</li>
+						<li data-id="31">31. Nguyễn Trọng Tài</li>
+						<li data-id="32">32. Nguyễn Trọng Thắng</li>
+						<li data-id="33">33. Trương Thị Mỹ Thoa</li>
+						<li data-id="34">34. Nguyễn Nữ Anh Thư</li>
+						<li data-id="35">35. Nguyễn Đắc Tĩnh</li>
+						<li data-id="36">36. Tôn Nữ Nguyễn Bảo Trâm</li>
+						<li data-id="37">37. Trần Thị Yến Trâm</li>
+						<li data-id="38">38. Hoàng Thị Phương Trinh</li>
+						<li data-id="39">39. Nguyễn Quốc Trung</li>
+						<li data-id="40">40. Trương Dương Hoài Trung</li>
+						<li data-id="41">41. Hứa Văn Tùng</li>
+						<li data-id="42">42. Nguyễn Thị Thảo Vy</li>
+					</ul>
+				</div>
+			</div>
+		</aside>
+		<!-- main -->
+		<section class="column1">
+			<article id="confs" class="content-card">
+				<p align="center">Lời Thổ Lộ</p>
+				<p class="content">
+					<b>Hữu Huy</b><br>
+					<i>Cùng nhau suốt 3 năm cấp ba đã để lại trong bản thân mình nhiều kỉ niệm và cảm xúc đáng nhớ. Mình cảm thấy hạnh phúc và trân trọng những gì đã trải qua. Xin lỗi mọi người vì những lúc hành xử không đúng. Xin lỗi em vì đã không đủ tự tin để thừanhận với em.</i><br><br>
+
+					<b>Tuấn Kiệt</b><br>
+					<i>Lời xin lỗi chân thành về những lần nghịch ngợm, trốn học, quên làm bài tập, làm thầy cô buồn hay bạn bè giận dỗi.</i><br><br>
+
+					<b>Diệu Linh</b><br>
+					<i>
+					Trống tan trường đã rung lên rộn rã<br>
+					Giờ phút chia tay thực sự đến rồi<br>
+					Thầy cô, bạn bè, lớp học mến yêu ơi<br>
+					Nói gì đi bởi ngày mai chẳng gặp<br>
+					Bao tháng năm chung niềm vui sách ,cặp<br>
+					Bảng đen dìu từng nét chữ thơ ngây<br>
+					Tóc thầy bạc cho em lớn mỗi ngày<br>
+					Phấn trắng rơi cho cuộc đời em mở<br>
+					Bạn bè ơi, đừng nghẹn ngào nức nở<br>
+					Dẫu mai đây chẳng còn được đủ đầy<br>
+					Dù mai ngày cuộc sống có đổi thay<br>
+					Ánh mắt thân quen chợt trở thành xa lạ<br>
+					Chia tay rồi mỗi đứa đi một ngả<br>
+					Lưu bút yêu thương một ngày sẽ ướt nhoè<br>
+					Bởi cuộc đời đâu phải nắng vàng hoe<br>
+					Bình minh lên là chói chang rực rỡ<br>
+					Rồi mai đây mỗi mùa hoa phượng nở<br>
+					Sân trường tấp nập chẳng thấy bóng bạn xưa<br>
+					Ghế đá vẫn nguyên sao chợt bỗng như thừa<br>
+					Bởi còn đâu mối tình khờ ngày ấy<br>
+					Nắng cứ đổ cho sân trường bốc cháy<br>
+					Nức nở nghẹn ngào giọt nước mắt chia ly<br>
+					Mái trường ơi còn thể nói được gì<br>
+					Hết thật rồi tuổi học trò áo trắng<br>
+					</i><br><br>
+
+					<b>Anh Hào</b><br>
+					<i>Ba năm cấp 3 trôi qua nhanh hơn chúng ta tưởng. Mới ngày nào còn bỡ ngỡ bước vào lớp học mới, vậy mà hôm nay đã đứng trước ngưỡng cửa chia tay. Có những niềm vui giản dị, những lần cười đùa không nghĩ ngợi, cả những giận hờn vu vơ… tất cả đã trở thành kỷ niệm không thể quên. Nếu được nói một điều từ tận đáy lòng, mình chỉ muốn nói rằng: cảm ơn vì đã được gặp mọi ngườitrong thanh xuân đẹp nhất này.</i><br><br>
+
+					<b>Ngọc Linh</b><br>
+					<i>Cảm ơn vì đã xuất hiện trong thanh xuân của mình dù không ồn ào, nhưng đủ để khiến những năm tháng ấy trở nên đặc biệt.</i><br><br>
+
+					<b>Minh Nhật</b><br>
+					<i>Con đường trưởng thành sẽ luôn có sự rời xa nhau theo cách này hay cách khác. Khi đó chúng tôi luôn tin rằng rời xa nhau vì ngày mai gặp lại vì vậy mới nói hẹn gặp lại. Thật ra thế giới này quá rộng lớn, ban đầu những người nói mãi mãi không xa nhau. Một lần xa nhau rồi có thể sau này sẽ không còn cơ hội gặp lại nữa. Rồi hai bên đều phải quên đi. Tạm biệt thực ra không phải là từ biệt mà là một lời hứa.</i><br><br>
+				</p>
+				<a href="#" class="toggle">xem thêm</a>
+			</article>
+			<article id="moments" class="content-card">
+				<p align="center">Khoảnh Khắc</p>
+				<p class="content">
+					10A2<br>
+					<img src="assets/gallery/images/anh-gvcn-10a2-tapthe.jpeg" alt="20/10 lớp 10a2">
+					20/10/2023<br><br>
+					11A2<br>
+					<img src="assets/gallery/images/tapthe-20-10-anh-11a2.jpeg" alt="20/10 lớp 11a2">
+					20/10/2024<br>
+					<img src="assets/gallery/images/anh-11a2-hoiitrai-tapthe-.jpg"alt="Hội trại 11a2">
+					26/3/2025<br>
+					<img src="assets/gallery/images/bongda-11a2-tapthe-anhh.jpeg"alt="Bóng Đá 11a2"><br>
+					12A2<br>
+					<img src="assets/gallery/images/anh-12a2-20-10-taptheee.jpg" al="cuộc thi 20/10 lớp 12a2">
+					20/10/2025<br>
+				</p>
+				<a href="#" class="toggle">xem thêm</a>
+			</article>
+			<article id="gratitude" class="content-card">
+				<p align="center">Tri Ân</p>
+				<p class="content">
+					<b>Hữu Huy</b><br>
+					<i>Cảm ơn thầy cô đã là người luôn kiên nhẫn và tạo cơ hội cho chúng em học tập dưới mái trường thân yêu.</i><br><br>
+
+					<b>Tuấn Kiệt</b><br>
+					<i>Thầy cô không chỉ dạy kiến thức, mà dạy chúng con làm người. Cảm ơn thầy cô đã kiên nhẫn với đứa học trò bướng bỉnh này.</i><br><br>
+
+					<b>Diệu Linh</b><br>
+					<i>Cha mẹ cho con một hình hài, Thầy cô cho em cả kiến thức. Vâng! Đó là điều thiêng liêng cao cả mà em tâm đắc nhất. Đấng sinh thành đã cho em một hình hài. Thầy cô là người cha người mẹ thứ hai cho em bao kiến thức. "Thầy cô" hai tiếng thân thương lúc nào cũng khắc sâu trong tâm trí, trong suy nghĩ của em. Hạnh phúc thay! Tạo hóa đã ban tặng cho em một sự sống, bên cạnh đó là những người luôn ân cần dạy dỗ theo dõi từng bước đi của em ,giúp em sống một cuộc sống đầy ý nghĩa, luôn ngẩng cao đầu về một tương lai tươi sáng. Chính vì lẽ đó mà em luôn khắcsâu công ơn trời biển của thầy cô.</i><br><br>
+
+					<b>Anh Hào</b><br>
+					<i>Chúng em xin gửi lời biết ơn sâu sắc đến thầy cô – những người đã luôn kiên nhẫn dìu dắt, dạy chúng em không chỉ kiến thức mà còn cách làm người. Cảm ơn gia đình đã luôn âm thầm phía sau, lo lắng và tin tưởng chúng em từng ngày. Và cảm ơn những người bạn đã cùng nhau đi qua những buổi học dài, những kỳ thi căng thẳng, để hôm nay chúng ta có thể tự hào nói rằng:chúng ta đã trưởng thành.</i><br><br>
+
+					<b>Ngọc Linh</b><br>
+					<i>Những điều chúng em nhận được không chỉ là kiến thức, mà là yêu thương, là niềm tin, là hành trang cho cả một chặng đường dài phía trước</i><br><br>
+
+					<b>Minh Nhật</b><br>
+					<i>Những giây phút cuối cùng khi còn được ngồi trên ghế nhà trường, chúng em xin được gửi lời tri ân chân thành, sâu sắc nhất đến các thầy cô giáo đã dạy dỗ chúng em trong thời gian qua. Chúng em sẽ nhớ mãi công ơn dạy bảo của các thầy cô.</i><br><br>
+				</p>
+				<a href="#" class="toggle">xem thêm</a>
+			</article>
+			<article id="dream" class="content-card">
+				<p align="center">Ước mơ</p>
+				<p class="content">
+					<b>Hữu Huy</b><br>
+					<i>Tôi muốn làm siêu anh hùng giải cứu thế giới, còn cậu sẽ là thế giới của tôi.</i><br><br>
+
+					<b>Tuấn Kiệt</b><br>
+					<i>Hôm nay chúng ta chia tay để hẹn gặp lại nhau ở một phiên bản tốt hơn. Tớ ước mơ trở thành siêu anh hùng, còn cậu sẽ là”…”. Dù đường đời có khó khăn, hãy hứa sẽ sống rực rỡ như hoahướng dương hướng về mặt trời nhé!</i><br><br>
+
+					<b>Diệu Linh</b><br>
+					<i>ba năm thanh xuân qua lớp cùng chung gắn bó, xuân hạ thu đông tới chúng ta đều đi hết. Lá đã rụng kín sân, xuân cũng đang đợi ghé, hạ lại gần hơn rồi. Năm học sắp kết thúc,tháng sáu đợi chúng ta các chiến binh sẵn sàng vững chân, tự tin bước mang điểm cao về nhà. Ước mơ ngay trước mắt hãy nắm bắt thật nhanh, cùng nhau vào đại học viết tiếp hành trình đời.</i><br><br>
+
+					<b>Anh Hào</b><br>
+					<i>Mai này mỗi người sẽ đi trên một con đường khác nhau, mang theo những ước mơ riêng. Có thể sẽ có khó khăn, vấp ngã, nhưng mong rằng chúng ta luôn giữ trong tim sự nhiệt huyết của tuổi 18 – dám nghĩ, dám làm và không bỏ cuộc. Hy vọng một ngày nào đó nhìn lại, chúng ta sẽ mỉm cười vì đã sống hết mình cho ướcmơ của mình.</i><br><br>
+
+					<b>Ngọc Linh</b><br>
+					<i>Ước sau này, giữa bộn bề cuộc sống, mình vẫn còn nguyên mộtgóc nhỏ cho những ước mơ tuổi trẻ</i><br><br>
+
+					<b>Minh Nhật</b><br>
+					<i>Sau này không đánh mất bản thân,cố gắn phấn đấu trở thành phiên bản tốt nhất của chính mình.</i><br><br>
+
+					<b>Thất Bách</b><br>
+					<i>Ai cũng có một ước mơ cho mình. Dù lớn hoặc nhỏ nhưng đó cũng là sư hy vọng mong cầu của mỗi người. Ta có thể sống nhưng không có ước mơ nhưng chắc chắn thế giơi của ta sẽ rất lạc lõng và nhàm chán. Nếu có ước mơ sẽ giúp chúng ta có nhiều sắc màu hơn. Giấc mơ không cần trả tiền chúng ta có thể hy vọng bao nhiêu tùy thích... Nhiều người nói rằng giấc mơ có thể đánh đổi bằng tiền. Xin hãy đừng suy nghĩ về những điều đó sự khát khao khát vọng là không có giới hạn. Vì thế con người có quyền được ước mơ và mong cầu.</i><br><br>
+				</p>
+				<a href="#" class="toggle">xem thêm</a>
+			</article>
+			<article id="wish" class="content-card">
+				<p align="center">Lời chúc</p>
+				<p class="content">
+					<b>Hữu Huy</b><br>
+					<i>Hi vọng bản thân và mọi người luôn mạnh mẽ tiến về phía trước, đưa ra lựa chọn đúng đắn và tin tưởng vào bản thân.</i><br><br>
+					<b>Tuấn Kiệt</b><br>
+
+					<i>Chúc tập thể lớp mình thi tốt, đỗ nguyện vọng cao. Chúc bạn chân cứng đá mềm, luôn giữ được nụ cười tỏa nắng. Mãi là thanh xuân của nhau, chúc chúng ta sau này ai cũng hạnh phúc!</i><br><br>
+
+					<b>Anh Hào</b><br>
+					<i>Chúc cho tất cả chúng ta luôn mạnh mẽ, tự tin bước vào chặng đường mới. Chúc tình bạn hôm nay sẽ mãi là ký ức đẹp theo suốt cuộc đời. Và chúc cho mỗi người, dù đi đâu, làm gì, vẫn nhớ rằng đã từng có một thời thanh xuân mang tên cấp 3 thật rực rỡ</i><br><br>
+
+					<b>Ngọc Linh</b><br>
+					<i>Chúc chúng ta sau này nhìn lại vẫn mỉm cười vì đã từng có một thanh xuân rực rỡ bên nhau</i><br><br>
+
+					<b>Minh Nhật</b><br>
+					<i>Chúc mừng m tốt nghiệp cấp 3! Hành trình mới lại bắt đầu, cố gắng hơn nữa nhé! Cảm ơn vì đã đồng hành cùng t suốt 3 năm học đầy kỷ niệm.</i><br><br>						
+				</p>
+				<a href="#" class="toggle">xem thêm</a>
+			</article>
+		</section>
+	</main>
+
+	<!--- form --->
+	<form id="form" name="contact" method="POST" data-netlify="true" class="content-card">
+		Yêu cầu bổ sung nội dung được gửi tại đây!<br>
+		<input type="hidden" name="form-name" value="contact">
+		<label>
+			Tên:<br>
+			<input class="name" type="text" name="name" required>
+		</label><br>
+		<label>
+			Nội dung:<br>
+			<textarea class="message" name="message" required></textarea>
+		</label><br>
+		<button type="submit">Gửi yêu cầu</button>
+	</form>
+	<!-- popup cảm ơn -->
+	<div id="thanks-popup" class="thanks-popup">
+		<div class="thanks-card">
+			Cảm ơn bạn đã gửi yêu cầu!❤
+		</div>
+	</div>
+	<!-- POPUP gallery -->
+	<div id="galleryPopup" class="popup">
+  		<div class="popup-inner">
+
+    		<!-- FILTER -->
+    		<aside class="filter">
+      			<button class="toggle-filter">Bộ lọc</button>
+      			<span id="totalCount">Tổng: 0 Media</span>
+      			<button class="close-btn">✖</button>
+      			<div class="filter-content">
+        			<button class="tag-btn active" data-tag="all">Tất cả</button>
+        		<!-- tags sẽ được tạo tự động bằng js-->
+      			</div>
+    		</aside>
+
+    		<!-- GALLERY -->
+    		<section class="gallery">
+      			<div class="media-container"></div>
+      			
+      			<!--media cho gallery được nhập từ json và lọc trong js-->
+
+      			<div class="scroll-trigger"></div>
+    		</section>
+
+  		</div>
+	</div>
+
+	<!-- FULLSCREEN VIEWER -->
+	<div class="viewer">
+	  	<button class="prev">❮</button>
+	  	<div class="viewer-content"></div>
+	  	<button class="next">❯</button>
+	  	<button class="viewer-close">✖</button>
+	</div>
+	
+	<button id="homeBtn" onclick="scrollToTop()"> ^ </button>
+	<footer>
+		<p align="center">© 2026 - Thanh xuân tuổi 18</p>
+		<section class="footer-line">
+			<h3>Về Thanh xuân tuổi 18</h3>
+			<p><i>Đây là trang web chính thức của lớp 12A2 THPT Thừa Lưu, niên khóa 2023-2026 được thực hiện bởi tổ 2. Tại đây lưu trữ những ảnh và video trong suốt quá trình học tập và vui chơi của lớp. Những khung hình đáng nhớ này sẽ được lưu trữ để mọi người có thể ôn lại kỉ niệm đáng nhớ.</i></p>
+			<div class="footer-content">
+				<div class="left-footer">
+					<h2>Nhiệm vụ thực hiện</h2>
+					<h3>Lên ý tưởng</h3>
+					<ul>
+						<li>Nguyễn Hữu Huy (nhóm trưởng)</li>
+					</ul>
+					<h3>Thực hiện kĩ thuật</h3>
+					<ul>
+						<li>Nguyễn Hữu Huy (nhóm trưởng)</li>
+						<li>Nguyễn Tiến Dũng</li>
+					</ul>
+					<h3>Kiểm tra, tối ưu hóa lần cuối</h3>
+					<ul>
+						<li>Nguyễn Tiến Dũng</li>
+					</ul>
+					<h3>Tư vấn bố cục, đồ họa</h3>
+					<ul>
+						<li>Bùi Nguyễn Bảo Nguyên</li>
+						<li>Trương Văn Pháp</li>
+					</ul>
+					<h3>Nội dung</h3>
+					<ul>
+						<li>Trần Duy Minh</li>
+						<li>Bùi Nguyễn Bảo Nguyên</li>
+						<li>Lê Nguyễn Ngọc Linh</li>
+						<li>Bùi Diệu Linh</li>
+						<li>Tôn Thất Bách</li>
+						<li>Nguyễn Tuấn Kiệt</li>
+						<li>Nguyễn Anh Hào</li>
+						<li>Nguyễn Minh Nhật</li>
+					</ul>
+				</div>
+				<div class="right-footer">
+					<h2>Thông tin liên hệ</h2>
+					<p><b>Email:</b><a href="mailto:contactwithus12a2@gmail.com"> contactwithus12a2@gmail.com</a></p>
+					<p><b>Zalo:</b> ...</p>
+					<p><b>Facebook:</b> ...</p>
+					<p><b>Instagram:</b><a href="https://www.instagram.com/_12a2.neversai_?igsh=MTk0d3c2dXEybnNyOA=="> @_12a2.neversai_</a></p>
+					<p><b>Địa chỉ:</b> Lớp 12A2, Trường THPT Thừa Lưu, Lộc Tiến, Chân Mây-Lăng Cô, Thành Phố Huế.</p>
+					<i>Mọi thông tin cần trao đổi hoặc yêu cầu bổ sung, gỡ bỏ xin liên hệ về một trong các đường dẫn trên hoặc liên hệ trực tiếp với nhóm trưởng dự án. Xin cảm ơn.</i>
+				</div>
+			</div>
+		</section>
+    </footer>
+<script src="functions.js"></script>
+</body>
+</html>
