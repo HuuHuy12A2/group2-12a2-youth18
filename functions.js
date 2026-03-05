@@ -147,10 +147,11 @@ form.addEventListener("submit", function(e) {
 
     const formData = new FormData(form);
 
-    fetch("/", {
-        method: "POST",
-        body: formData
-    })
+    emailjs.sendForm(
+        "service_HuuHuy111",
+        "template_kusufs9",
+        form
+    )
     .then(() => {
         form.reset();
         showPopup();
@@ -489,4 +490,5 @@ function resetZoom() {
         media.style.transformOrigin = "center center";
     }
     viewer.style.cursor = "zoom-in";
+
 }
