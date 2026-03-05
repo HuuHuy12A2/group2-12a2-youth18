@@ -295,9 +295,8 @@
 	</main>
 
 	<!--- form --->
-	<form id="form" name="contact" method="POST" data-netlify="true" class="content-card">
+	<form id="form" class="content-card">
 		Yêu cầu bổ sung nội dung được gửi tại đây!<br>
-		<input type="hidden" name="form-name" value="contact">
 		<label>
 			Tên:<br>
 			<input class="name" type="text" name="name" required>
@@ -400,6 +399,13 @@
 			</div>
 		</section>
     </footer>
+<script scr="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+	(function(){
+		emailjs.init("xyhtusZfyrwYQ9od-");
+	})();
+</script>
 <script src="functions.js"></script>
 </body>
+
 </html>
