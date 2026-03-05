@@ -145,8 +145,6 @@ const thanksPopup = document.getElementById("thanks-popup");
 form.addEventListener("submit", function(e) {
     e.preventDefault();
 
-    const formData = new FormData(form);
-
     emailjs.sendForm(
         "service_HuuHuy111",
         "template_kusufs9",
@@ -156,7 +154,9 @@ form.addEventListener("submit", function(e) {
         form.reset();
         showPopup();
     })
-    .catch(() => alert("Có lỗi xảy ra."));
+    .catch(() => {
+        alert("Có lỗi xảy ra.");
+    });
 });
 
 function showPopup() {
@@ -492,3 +492,4 @@ function resetZoom() {
     viewer.style.cursor = "zoom-in";
 
 }
+
