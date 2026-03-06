@@ -13,7 +13,7 @@
             rgba(0, 0, 0, 0.9),
             rgba(0, 0, 0, 0.1)
         ),
-        url("assets/general/introduce.jpg");
+        url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/introduce.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -314,7 +314,7 @@ body.dark-theme .sidebar::after{
 .sidebar{
     flex: 4;
     min-height: auto;
-    background-image: url("assets/general/vintage-paper.jpg");
+    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/vintage-paper.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -777,4 +777,5 @@ footer{
     100% {
         background-position: 400% center;
     }
+
 }
