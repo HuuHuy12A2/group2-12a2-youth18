@@ -157,8 +157,8 @@ function mkDust(layer){
 }
 function initDust(){
     dustB = []; dustT = [];
-    for(var i = 0; i < 100; i++) dustB.push(mkDust('bottom'));
-    for(var i = 0; i < 80; i++) dustT.push(mkDust('top'));
+    for(var i = 0; i < 50; i++) dustB.push(mkDust('bottom'));
+    for(var i = 0; i < 30; i++) dustT.push(mkDust('top'));
 }
 initDust();
 
