@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Duyệt đóng góp</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <main class="admin-container">
+        <section id="loginSection" class="admin-login">
+            <div class="login-card">
+                <h1>Quản trị</h1>
+                <p>Nhập mật khẩu để tiếp tục</p>
+                <form id="loginForm">
+                    <label for="adminPassword">Mật khẩu</label>
+                    <input type="password" id="adminPassword" autocomplete="current-password" required>
+                    <button type="submit">Đăng nhập</button>
+                    <p id="loginMessage" class="message"></p>
+                </form>
+            </div>
+        </section>
+
+        <section id="adminSection" class="admin-panel hidden">
+            <header class="admin-header">
+                <div>
+                    <h1>Duyệt đóng góp</h1>
+                    <p id="pendingCount">0 bài chờ duyệt</p>
+                </div>
+                <button id="logoutButton" class="secondary-button">
+                    Đăng xuất
+                </button>
+            </header>
+
+            <div class="admin-layout">
+                <aside class="submission-list">
+                    <div class="list-header">
+                        <h2>Danh sách</h2>
+                    </div>
+                    <div id="submissionList"></div>
+                </aside>
+
+                <section class="review-panel">
+                    <div id="emptyReview" class="empty-review">
+                        <img src='general/sleepy_cat.png' height="100" width="100">
+                        <h2>Chưa chọn bài gửi</h2>
+                        <p>Chọn một bài trong danh sách để xem trước.</p>
+                    </div>
+
+                    <div id="reviewContent" class="hidden">
+                        <div class="preview-section">
+                            <div id="mediaPreview" class="media-preview"></div>
+                        </div>
+
+                        <div class="review-form">
+                            <div class="review-header">
+                                <div>
+                                    <span id="reviewType" class="type-badge">
+                                        IMAGE
+                                    </span>
+                                    <span id="reviewStatus" class="status-badge">
+                                        PENDING
+                                    </span>
+                                </div>
+                                <div class="submission-meta">
+                                    <span id="submissionSize"></span>
+                                    <span id="submissionId"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="reviewFileName">
+                                    Tên file
+                                </label>
+                                <input type="text" id="reviewFileName">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Tags</label>
+                                <div id="tagEditor" class="tag-editor"></div>
+                                <div class="add-tag-row">
+                                    <input type="text" id="newTagInput" placeholder="Nhập tag mới">
+                                    <button type="button" id="addTagButton" class="secondary-button">
+                                        Thêm tag
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Phân tích từ tên file</label>
+                                <div id="analysisResult"></div>
+                            </div>
+
+                            <div class="review-actions">
+                                <button type="button" id="rejectButton" class="danger-button" >
+                                    Từ chối
+                                </button>
+                                <button type="button" id="approveButton" class="approve-button">
+                                    Duyệt
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <script src="tag-engine.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
