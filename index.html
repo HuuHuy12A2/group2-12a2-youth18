@@ -45,22 +45,10 @@
 	</style>
 </head>
 <body>
-
-	<svg style="position:absolute;width:0;height:0">
-		<filter id="grain-f">
-			<feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
-			<feColorMatrix type="saturate" values="0"/>
-		</filter>
-	</svg>
-	<div class="grain-overlay" style="position:fixed;inset:-50%;width:200%;height:200%;z-index:1001;pointer-events:none;opacity:.125;filter:url(#grain-f)">
-	</div>
-
-
-	<div class="bg-grad"></div>
+	
+	<div class="static-glare"></div>
 	<canvas id="dust-b" class="dust-cv"></canvas>
 	<canvas id="ray-b" class="ray-cv"></canvas>
-	<div id="fog-b" class="fog-box"></div>
-	<div id="fog-t" class="fog-box"></div>
 	<canvas id="ray-t" class="ray-cv"></canvas>
 	<canvas id="dust-t" class="dust-cv"></canvas>
 
@@ -114,7 +102,7 @@
 			<aside class="sidebar">
 				<!-- sidebar-header -->
 				<div class="sidebar-header">
-					<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/introduce.jpg" alt="giới thiệu lớp">
+					<img src="general/introduce.jpg" alt="giới thiệu lớp">
 					<h2>12A2</h2>
 				</div>
 				<!-- main-sidebar -->
@@ -230,16 +218,16 @@
 					<p align="center">Khoảnh Khắc</p>
 					<p class="content">
 						10A2<br>
-						<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/anh-gvcn-10a2-tapthe-20-10.jpg" alt="20/10 lớp 10a2">
+						<img src="images\anh-gvcn-10a2-tapthe-20-10.jpg" alt="20/10 lớp 10a2">
 						20/10/2023<br><br>
 						11A2<br>
-						<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/bongda-11a2-tapthe-anhh.jpg" alt="20/10 lớp 11a2">
+						<img src="images\bongda-11a2-tapthe-anhh.jpg" alt="20/10 lớp 11a2">
 						20/10/2024<br>
-						<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/anh-11a2-hoiitrai-tapthe-.jpg" alt="Hội trại 11a2">
+						<img src="images/anh-11a2-hoiitrai-tapthe-.jpg" alt="Hội trại 11a2">
 						26/3/2025<br>
-						<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/anh-tapthe-bongda-12a2.jpg" alt="Bóng Đá 11a2"><br>
+						<img src="images\anh-tapthe-bongda-12a2.jpg" alt="Bóng Đá 11a2"><br>
 						12A2<br>
-						<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/anh-12a2-20-10-taptheee.jpg" alt="cuộc thi 20/10 lớp 12a2">
+						<img src="images/anh-12a2-20-10-taptheee.jpg" alt="cuộc thi 20/10 lớp 12a2">
 						20/10/2025<br>
 					</p>
 					<a href="#" class="toggle">xem thêm</a>
