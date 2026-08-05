@@ -325,101 +325,34 @@
     --ray-glow:rgba(255,238,186,.18);
     --ray-core:rgba(255,245,219,.32);
     --fg:#f0e6d2;--fg-dim:#9a8e7a;
-    --accent:#c9a24d;--card:rgba(28,22,14,.74);
+    --accent:#c9a24d;
     --border:rgba(210,162,77,.13)
 }
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box
-}
-.bg-grad{
-    position:fixed;
-    inset:0;
-    z-index:0;
-    pointer-events:none;
-    background:
-        radial-gradient(
-            ellipse 
-            22% 17% 
-            at 
-            96% 0%,
-            rgba(255, 225, 145, 0.28), transparent
-        ),
-        radial-gradient(
-            ellipse 
-            38% 30% 
-            at 
-            88% 6%,
-            rgba(255, 205, 100, 0.15),transparent
-        ),
-        radial-gradient(
-            ellipse 
-            65% 55% 
-            at 
-            78% 14%,
-            rgba(180, 140, 50, 0.22),transparent
-        ),
-        radial-gradient(
-            ellipse 
-            50% 90% 
-            at 
-            65% 30%,
-            rgba(234, 195, 55, 0.2),transparent
-        )
-}
-.dust-cv{
-    position:fixed;
-    inset:0;
-    width:100vw;
-    height:100vh;
-    pointer-events:none
-}
-#dust-b{
-    z-index:50
-}
-#dust-t{
-    z-index:99999
-}
-.ray-cv{
-    position:fixed;
-    inset:0;
-    width:100vw;
-    height:100vh;
-    pointer-events:none
-}
-#ray-b{
-    z-index:51
-}
-#ray-t{
-    z-index:99998
-}
-.fog-box{
-    position:fixed;
-    inset:0;
-    width:100vw;
-    height:100vh;
-    pointer-events:none;
-    overflow:hidden
-}
-#fog-b{
-    z-index:52
-}
-#fog-t{
-    z-index:99997
-}
-.fog-bl{
-    position:absolute;
-    border-radius:50%;
-    will-change:transform,opacity
-}
-@media(prefers-reduced-motion:reduce){
-    .fog-bl,.bg-grad{
-        animation:none!important;
-        transition:none!important
-    }
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
+.dust-cv { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; }
+#dust-b { z-index: 50; }
+#dust-t { z-index: 99999; }
+/* Ẩn 2 canvas ray vì đã được gộp vẽ chung vào canvas dust */
+.ray-cv { display: none !important; } 
+
+.static-glare {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none; 
+    z-index: 99998; 
+    
+    background: radial-gradient(
+        circle at 95% 5%, /* Đặt tâm vòng tròn ở góc trên bên phải */
+        rgba(255, 222, 120, 0.45) 0%,    
+        rgba(255, 210, 100, 0.18) 20%,  
+        rgba(255, 195, 80, 0.06) 45%,  
+        transparent 80%                  
+    );
+}
 
 /*====== header ======*/
 .header-bg{
