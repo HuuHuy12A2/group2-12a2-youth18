@@ -29,7 +29,7 @@
 
     text-align: center;
     transition: 0.2s ease;
-    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images%20assets/general/stair.jpg");
+    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/stair.jpg");
     background-size: cover;
     background-position: center;
     transition: 0.6s ease;
@@ -42,7 +42,7 @@
     width: 82px;
     height: 82px;
     margin: 0 auto 16px;
-    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/general/pic_frame.png");
+    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/pic_frame.png");
     background-size: cover;
     background-position: center;
     display: flex;
@@ -95,7 +95,7 @@
     padding: 16px;
     backdrop-filter: blur(20px);
     border-radius: 14px;
-    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/general/hll.jpg");
+    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/hll.jpg");
     background-size: cover;
     background-position: center;
 }
@@ -436,7 +436,7 @@
             rgba(0, 0, 0, 0.8),
             rgba(0, 0, 0, 0)
         ),
-        url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/general/introduce.jpg");
+        url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/introduce.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -504,7 +504,7 @@ p.style2{
 }
 .navi-card{
     display: inline;
-    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/general/10.png");
+    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/10.png");
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -539,7 +539,7 @@ p.style2{
     border-radius: 5px;
 }
 body{
-    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/general/class.jpeg");
+    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/class.jpeg");
     background-size: cover;
     background-position: center;
     color: black;
@@ -616,7 +616,7 @@ body{
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/general/vintage-paper.png");
+    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/vintage-paper.png");
     background-size: cover;
     background-position: center;
     opacity: 0.65;
@@ -749,7 +749,7 @@ body{
     width: 90%;
     height: 90%;
     margin: 2% auto;
-    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/general/table.jpg");
+    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/table.jpg");
     overflow: hidden;
     transition: 0.4s var(--ease);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
@@ -761,7 +761,7 @@ body{
     padding: 0.8rem;
     width: 25%;
     border-right: 1px solid #ddd;
-    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/general/hl.jpg");
+    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/hl.jpg");
     background-repeat: no-repeat;
     background-size: cover;
 
@@ -820,7 +820,7 @@ body{
     padding: 0.6rem 0.6rem;
     border: none;
     background: none;
-    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images assets/general/12.png");
+    background-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/12.png");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
