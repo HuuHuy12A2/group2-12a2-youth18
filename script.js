@@ -1,74 +1,44 @@
 (function(){
 'use strict';
 
-/* ==================== CẤU HÌNH CHUNG ==================== */
-var W = window.innerWidth;
-var H = window.innerHeight;
-var DPR = Math.min(window.devicePixelRatio || 1, 2);
+/* ==================== CẤU HÌNH & TỐI ƯU MOBILE ==================== */
+var isMobile = window.matchMedia("(max-width: 768px)").matches;
+var DPR = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2); 
 var EPS = 0.0001;
 var DEG = Math.PI / 180;
 var MAX_RAYS = 6, MIN_RAYS = 2;
+
 var cvB = document.getElementById('dust-b');
 var cxB = cvB.getContext('2d');
 var cvT = document.getElementById('dust-t');
 var cxT = cvT.getContext('2d');
-var cvRB = document.getElementById('ray-b');
-var cxRB = cvRB.getContext('2d');
-var cvRT = document.getElementById('ray-t');
-var cxRT = cvRT.getContext('2d');
-var fogBoxB = document.getElementById('fog-b');
-var fogBoxT = document.getElementById('fog-t');
+
 var raysB = [], raysT = [];
 var raysBCache = [], raysTCache = [];
 var dustB = [], dustT = [];
 var spkB = [], spkT = [];
-var fogArr = [];
-var gTime = 0;
-var lastT = performance.now();
+var gTime = 0, lastT = performance.now();
+var W, H;
+var windTemp = { x: 0, y: 0 };
 
-/* ==================== TIỆN ÍCH ==================== */
-function cl(v,lo,hi){ return v < lo ? lo : v > hi ? hi : v; }
-function lp(a,b,t){ return a + (b - a) * t; }
-
-/* ==================== CANVAS SETUP — 4 canvas ==================== */
+/* ==================== CANVAS SETUP ==================== */
 function sizeCanvas(cv, cx){
     cv.width = W * DPR; cv.height = H * DPR;
     cv.style.width = W + 'px'; cv.style.height = H + 'px';
     cx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
-sizeCanvas(cvB, cxB);
-sizeCanvas(cvT, cxT);
-sizeCanvas(cvRB, cxRB);
-sizeCanvas(cvRT, cxRT);
-window.addEventListener('resize', function(){
-    W = window.innerWidth; 
-    H = window.innerHeight;
-    sizeCanvas(cvB, cxB); 
-    sizeCanvas(cvT, cxT);
-    sizeCanvas(cvRB, cxRB); 
-    sizeCanvas(cvRT, cxRT);
-    buildFog();
-});
 
-/* ==================== VALUE NOISE 2D ==================== */
-function h2(ix,iy){
-    var h = ix * 374761393 + iy * 668265263;
-    h = (h ^ (h >> 13)) * 1274126177;
-    return (h & 0x7fffffff) / 0x7fffffff;
+function initSize() {
+    W = window.innerWidth; H = window.innerHeight;
+    sizeCanvas(cvB, cxB); sizeCanvas(cvT, cxT);
 }
-function n2d(x,y){
-    var ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy;
-    var sx = fx*fx*(3-2*fx), sy = fy*fy*(3-2*fy);
-    var a = h2(ix,iy), b = h2(ix+1,iy), c = h2(ix,iy+1), d = h2(ix+1,iy+1);
-    return a + (b-a)*sx + (c-a)*sy + (a-b-c+d)*sx*sy;
-}
+initSize();
+window.addEventListener('resize', initSize);
 
 /* ==================== PRE-RENDER TEXTURES ==================== */
 function mkStripTx(w, fade, r, g, b){
-    fade = Math.min(fade, 0.49);
-    var c = document.createElement('canvas');
-    c.width = Math.max(1, Math.ceil(w)); 
-    c.height = 2;
+    fade = Math.min(fade, 0.49); w = Math.max(1, Math.ceil(w));
+    var c = document.createElement('canvas'); c.width = w; c.height = 2;
     var cx = c.getContext('2d');
     var gr = cx.createLinearGradient(0, 0, w, 0);
     gr.addColorStop(0, 'rgba('+r+','+g+','+b+',0)');
@@ -78,18 +48,30 @@ function mkStripTx(w, fade, r, g, b){
     cx.fillStyle = gr; cx.fillRect(0, 0, w, 2);
     return c;
 }
-var RY_R=230, RY_G=198, RY_B=45; /*màu quá nhạt*/
+var RY_R=230, RY_G=198, RY_B=45;
 var stripTx = [
     mkStripTx(100, 0.15, RY_R, RY_G, RY_B),
     mkStripTx(100, 0.27, RY_R, RY_G, RY_B),
     mkStripTx(100, 0.42, RY_R, RY_G, RY_B)
 ];
 
-/* Texture hào quang ấm cho bụi khi trong ray */
+function mkDustTexture(size, r, g, b) {
+    var c = document.createElement('canvas'); c.width = c.height = size * 2;
+    var cx = c.getContext('2d');
+    var gr = cx.createRadialGradient(size, size, 0, size, size, size);
+    gr.addColorStop(0, 'rgba('+r+','+g+','+b+',1)');
+    gr.addColorStop(0.45, 'rgba('+r+','+g+','+b+',.32)');
+    gr.addColorStop(1, 'rgba('+r+','+g+','+b+',0)');
+    cx.fillStyle = gr; cx.fillRect(0, 0, size*2, size*2);
+    return c;
+}
+var dustNormWarmTx = mkDustTexture(16, 255, 222, 165);
+var dustNormCoolTx = mkDustTexture(16, 212, 192, 148);
+var dustCoreTx = mkDustTexture(16, 255, 235, 150);
+
 function mkGlowTx(rad, r, g, b){
     var s = Math.ceil(rad*2), c = document.createElement('canvas');
-    c.width = c.height = s; 
-    var cx = c.getContext('2d');
+    c.width = c.height = s; var cx = c.getContext('2d');
     var gr = cx.createRadialGradient(rad,rad,0,rad,rad,rad);
     gr.addColorStop(0, 'rgba('+r+','+g+','+b+',1)');
     gr.addColorStop(0.15, 'rgba('+r+','+g+','+b+',0.5)');
@@ -100,19 +82,38 @@ function mkGlowTx(rad, r, g, b){
 }
 var dustGlowTx = mkGlowTx(32, 255, 225, 120);
 
-/* ==================== WIND FIELD ==================== */
-function wind(x, y, t, layer){
+function mkSparkleTexture() {
+    var s = 64; var c = document.createElement('canvas'); c.width = c.height = s;
+    var cx = c.getContext('2d');
+    var gr = cx.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+    gr.addColorStop(0, 'rgba(255,253,244,1)');
+    gr.addColorStop(0.15, 'rgba(255,248,228,0.6)');
+    gr.addColorStop(0.5, 'rgba(255,248,228,0.1)');
+    gr.addColorStop(1, 'rgba(255,248,228,0)');
+    cx.fillStyle = gr; cx.fillRect(0, 0, s, s);
+    cx.globalCompositeOperation = 'lighter';
+    cx.strokeStyle = 'rgba(255,251,238,0.8)'; cx.lineWidth = 1.5;
+    cx.beginPath();
+    cx.moveTo(s/2 - s/3, s/2); cx.lineTo(s/2 + s/3, s/2);
+    cx.moveTo(s/2, s/2 - s/3); cx.lineTo(s/2, s/2 + s/3);
+    cx.stroke();
+    return c;
+}
+var sparkleTx = mkSparkleTexture();
+
+/* ==================== TOÁN HỌC CƠ BẢN ==================== */
+function cl(v,lo,hi){ return v < lo ? lo : v > hi ? hi : v; }
+function lp(a,b,t){ return a + (b - a) * t; }
+function h2(ix,iy){ var h = ix * 374761393 + iy * 668265263; h = (h ^ (h >> 13)) * 1274126177; return (h & 0x7fffffff) / 0x7fffffff; }
+function n2d(x,y){ var ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy; var sx = fx*fx*(3-2*fx), sy = fy*fy*(3-2*fy); var a = h2(ix,iy), b = h2(ix+1,iy), c = h2(ix,iy+1), d = h2(ix+1,iy+1); return a + (b-a)*sx + (c-a)*sy + (a-b-c+d)*sx*sy; }
+
+/* ==================== WIND & STEERING ==================== */
+function wind(x, y, t, layer, out){
     var s = layer === 'top' ? 1.35 : 0.7;
-    var bx = -0.0065*s, 
-    by = 0.0032*s;
-    var nx = Math.sin(y*0.0072+t*0.44)*0.0095*s + Math.cos(x*0.0042+t*0.27)*0.006*s;
-    var ny = Math.cos(x*0.0053+t*0.35)*0.0042*s + Math.sin(y*0.0031+t*0.18)*0.003*s;
-    var fx = Math.sin(y*0.0018+t*0.1)*0.008*s;
-    var fy = Math.cos(x*0.0022+t*0.08)*0.005*s;
-    return { x: bx+nx+fx, y: by+ny+fy };
+    out.x = -0.0065*s + Math.sin(y*0.0072+t*0.44)*0.0095*s + Math.cos(x*0.0042+t*0.27)*0.006*s + Math.sin(y*0.0018+t*0.1)*0.008*s;
+    out.y = 0.0032*s + Math.cos(x*0.0053+t*0.35)*0.0042*s + Math.sin(y*0.0031+t*0.18)*0.003*s + Math.cos(x*0.0022+t*0.08)*0.005*s;
 }
 
-/* ==================== STEERING BEHAVIOR ==================== */
 function steer(p, t){
     var dx = p.tx-p.x, dy = p.ty-p.y, d = Math.sqrt(dx*dx+dy*dy);
     if(d < EPS) d = EPS;
@@ -120,8 +121,8 @@ function steer(p, t){
     var sx = dvx-p.vx, sy = dvy-p.vy;
     var sm = Math.sqrt(sx*sx+sy*sy);
     if(sm > p.mf){ sx=(sx/sm)*p.mf; sy=(sy/sm)*p.mf; }
-    var w = wind(p.x, p.y, t, p.ly);
-    sx += w.x; sy += w.y;
+    wind(p.x, p.y, t, p.ly, windTemp); 
+    sx += windTemp.x; sy += windTemp.y;
     sx += Math.sin(t*p.wf+p.ph)*p.wa*0.008;
     sy += Math.cos(t*p.wf*0.67+p.ph)*p.wa*0.006;
     p.vx += sx; p.vy += sy;
@@ -134,616 +135,237 @@ function steer(p, t){
     if(d < p.th){ p.tx = Math.random()*W; p.ty = Math.random()*H; p.th = 35+Math.random()*90; }
 }
 
-/* ==================== HẠT BỤI ==================== */
+/* ==================== KHỞI TẠO HẠT BỤI & SPARKLE ==================== */
 function mkDust(layer){
     var top = layer === 'top';
-    return {
-        x: Math.random()*W, 
-        y: Math.random()*H,
-        vx: (Math.random()-0.5)*0.15, 
-        vy: (Math.random()-0.5)*0.15,
-        ms: top ? 0.42+Math.random()*0.52 : 0.2+Math.random()*0.3,
-        mf: top ? 0.015+Math.random()*0.017 : 0.007+Math.random()*0.01,
-        sz: Math.max(EPS, top ? 1.2+Math.random()*2.2 : 0.4+Math.random()*1.4),
-        op: top ? 0.22+Math.random()*0.38 : 0.1+Math.random()*0.26,
-        tx: Math.random()*W, 
-        ty: Math.random()*H, 
-        th: 35+Math.random()*85,
-        ly: layer, 
-        ph: Math.random()*Math.PI*2,
-        wf: 0.8+Math.random()*2.2, 
-        wa: 0.2+Math.random()*0.6
+    return { 
+        x: Math.random()*W, y: Math.random()*H, 
+        vx: (Math.random()-0.5)*0.1, vy: (Math.random()-0.5)*0.1, 
+        // TỐC ĐỘ GIẢM 30%
+        ms: top ? 0.28+Math.random()*0.34 : 0.14+Math.random()*0.2, 
+        mf: top ? 0.01+Math.random()*0.011 : 0.005+Math.random()*0.006, 
+        // GIỮ NGUYÊN KÍCH THƯỚC GỐC ĐỂ TRÁNH MẤT HẠT
+        sz: Math.max(EPS, top ? 1.2+Math.random()*2.2 : 0.4+Math.random()*1.4), 
+        op: top ? 0.22+Math.random()*0.38 : 0.1+Math.random()*0.26, 
+        tx: Math.random()*W, ty: Math.random()*H, th: 35+Math.random()*85, 
+        ly: layer, ph: Math.random()*Math.PI*2, wf: 0.8+Math.random()*2.2, wa: 0.2+Math.random()*0.6 
     };
 }
-function initDust(){
-    dustB = []; dustT = [];
-    for(var i = 0; i < 80; i++) dustB.push(mkDust('bottom'));
-    for(var i = 0; i < 50; i++) dustT.push(mkDust('top'));
-}
-initDust();
 
-/* ==================== SPARKLE ==================== */
 function mkSparkle(layer){
     var top = layer === 'top';
-    return {
-        x: Math.random()*W, y: Math.random()*H,
-        vx: (Math.random()-0.5)*0.1, vy: (Math.random()-0.5)*0.1,
-        ms: top ? 0.34+Math.random()*0.4 : 0.15+Math.random()*0.24,
-        mf: top ? 0.012+Math.random()*0.014 : 0.005+Math.random()*0.009,
-        sz: Math.max(EPS, 0.5+Math.random()*1.5),
-        tx: Math.random()*W, ty: Math.random()*H, th: 45+Math.random()*110,
-        ly: layer, ph: Math.random()*Math.PI*2,
-        wf: 0.9+Math.random()*2.5, wa: 0.15+Math.random()*0.45,
-        flSpd: 1.0+Math.random()*3.0, flPh: Math.random()*Math.PI*2,
-        baseOp: top ? 0.88+Math.random()*0.12 : 0.65+Math.random()*0.3
+    return { 
+        x: Math.random()*W, y: Math.random()*H, 
+        vx: (Math.random()-0.5)*0.08, vy: (Math.random()-0.5)*0.08, 
+        // TỐC ĐỘ GIẢM 30%
+        ms: top ? 0.22+Math.random()*0.26 : 0.10+Math.random()*0.16, 
+        mf: top ? 0.012+Math.random()*0.014 : 0.005+Math.random()*0.009, 
+        // GIỮ NGUYÊN KÍCH THƯỚC GỐC
+        sz: Math.max(EPS, 0.5+Math.random()*1.5), 
+        tx: Math.random()*W, ty: Math.random()*H, th: 45+Math.random()*110, 
+        ly: layer, ph: Math.random()*Math.PI*2, wf: 0.9+Math.random()*2.5, wa: 0.15+Math.random()*0.45, 
+        flSpd: 1.0+Math.random()*3.0, flPh: Math.random()*Math.PI*2, 
+        baseOp: top ? 0.88+Math.random()*0.12 : 0.65+Math.random()*0.3 
     };
 }
-function initSparkles(){
-    spkB = []; spkT = [];
-    for(var i = 0; i < 18; i++) spkB.push(mkSparkle('bottom'));
-    for(var i = 0; i < 12; i++) spkT.push(mkSparkle('top'));
-}
-initSparkles();
-function drawSparkle(cx, p, t){
-    var raw = Math.sin(t*p.flSpd+p.flPh);
-    var flash = Math.pow(Math.max(0, raw), 4);
-    var op = p.baseOp * flash;
-    if(op < 0.012) return;
-    var r = Math.max(EPS, p.sz);
-    var peak = flash > 0.65;
-    cx.save();
-    cx.shadowColor = 'rgba(255,248,228,'+(op*0.65).toFixed(3)+')';
-    cx.shadowBlur = r*(peak ? 9 : 4.5);
-    cx.beginPath(); cx.arc(p.x, p.y, r, 0, Math.PI*2);
-    cx.fillStyle = 'rgba(255,253,244,'+op.toFixed(3)+')'; cx.fill();
-    if(peak){
-        cx.shadowBlur = r*3;
-        cx.strokeStyle = 'rgba(255,251,238,'+(op*0.45).toFixed(3)+')';
-        cx.lineWidth = Math.max(EPS, r*0.28);
-        var len = r*3.5;
-        cx.beginPath();
-        cx.moveTo(p.x-len,p.y); cx.lineTo(p.x+len,p.y);
-        cx.moveTo(p.x,p.y-len); cx.lineTo(p.x,p.y+len);
-        cx.stroke();
-    }
-    cx.restore();
-}
 
-/* ================TIA NẮNG VOLUMETRIC CANVAS — thay thế module ray DOM cũ============ */
-
-function getRayScale(cw){
-    return 1.0 + cl((cw - 375) / (1920 - 375), 0, 1) * 1.5;
+function initParticles() {
+    dustB = []; dustT = []; spkB = []; spkT = [];
+    var dustBCount = isMobile ? 45 : 80;
+    var dustTCount = isMobile ? 25 : 50;
+    var spkBCount = isMobile ? 10 : 18;
+    var spkTCount = isMobile ? 6 : 12;
+    for(var i = 0; i < dustBCount; i++) dustB.push(mkDust('bottom'));
+    for(var i = 0; i < dustTCount; i++) dustT.push(mkDust('top'));
+    for(var i = 0; i < spkBCount; i++) spkB.push(mkSparkle('bottom'));
+    for(var i = 0; i < spkTCount; i++) spkT.push(mkSparkle('top'));
 }
+initParticles();
+
+/* ==================== VOLUME RAYS ==================== */
+function getRayScale(cw){ return 1.0 + cl((cw - 375) / (1920 - 375), 0, 1) * 1.5; }
 function mkCanvasRay(layer){
-    var sc = getRayScale(W);
-    var dg = Math.sqrt(W*W + H*H);
-    var ang = 0.32 + Math.random()*0.4;
-    var tw = (8 + Math.random()*42) * sc;
-    var bw = tw * (2.5 + Math.random()*2.5);
-    var len = dg * (3.0 + Math.random()*1.0);
-    var ox = W*0.15 + Math.random()*W;
-    var oy = -H*0.45 + Math.random()*H*0.6;
-    var mR_deg = 10 + Math.random()*10;
-    var rS_deg = 0.15 + Math.random()*0.25;
-    var yD = Math.random() > 0.5 ? 1 : -1;
-
-    var numStrips = 16 + Math.floor(Math.random()*7);
+    var sc = getRayScale(W); var dg = Math.sqrt(W*W + H*H);
+    var ang = 0.32 + Math.random()*0.4; var tw = (8 + Math.random()*42) * sc; var bw = tw * (2.5 + Math.random()*2.5);
+    var len = dg * (3.0 + Math.random()*1.0); var ox = W*0.15 + Math.random()*W; var oy = -H*0.45 + Math.random()*H*0.6;
+    var mR_deg = 10 + Math.random()*10; var rS_deg = 0.15 + Math.random()*0.25; var yD = Math.random() > 0.5 ? 1 : -1;
+    var numStrips = isMobile ? (8 + Math.floor(Math.random()*4)) : (16 + Math.floor(Math.random()*7));
     var strips = [];
     for(var s = 0; s < numStrips; s++){
-        var f = numStrips===1 ? 0 : (s/(numStrips-1)-0.5)*1.1;
-        f += (Math.random()-0.5)*0.008;
-        var absF = Math.abs(f);
-        var tIdx = absF < 0.25 ? 0 : (absF < 0.5 ? 1 : 2);
+        var f = numStrips===1 ? 0 : (s/(numStrips-1)-0.5)*1.1; f += (Math.random()-0.5)*0.008;
+        var absF = Math.abs(f); var tIdx = absF < 0.25 ? 0 : (absF < 0.5 ? 1 : 2);
         var w = (12 + Math.random()*10 + absF*40) * sc;
-        strips.push({
-            f:f, w:w, tIdx:tIdx,
-            alpha: (0.025+Math.random()*0.045)*(1-absF*0.35),
-            nSeed: Math.random()*10000,
-            nSpeed: 0.00008+Math.random()*0.00022,
-            nAmp: (3+Math.random()*5)*sc
-        });
+        strips.push({ f:f, w:w, tIdx:tIdx, alpha: (0.025+Math.random()*0.045)*(1-absF*0.35), nSeed: Math.random()*10000, nSpeed: 0.00008+Math.random()*0.00022, nAmp: (3+Math.random()*5)*sc });
     }
     strips.sort(function(a,b){ return a.tIdx - b.tIdx; });
-
-    return {
-        x:ox, 
-        y:oy, 
-        ang:ang, 
-        len:len, 
-        tw:tw, 
-        bw:bw, 
-        sc:sc,
-        op:0, 
-        mxOp: 0.185+Math.random()*0.152,
-        age:0, 
-        life: 4000+Math.random()*3000,
-        st:'in', 
-        fd: 2500+Math.random()*1500, foS:0,
-        yO:0, 
-        yD:yD, 
-        yS:3,
-        rO:0, 
-        rD: Math.random()>0.5 ? 1 : -1,
-        rS: rS_deg*DEG/1000, 
-        mR: mR_deg*DEG,
-        bS: 0.0004+Math.random()*0.0006,
-        bP: Math.random()*Math.PI*2, 
-        bA: 0.08+Math.random()*0.10,
-        strips:strips, 
-        layer:layer,
-        maskSeed: Math.random()*10000,
-        maskSpeed: 0.00012+Math.random()*0.00028
-    };
+    return { x:ox, y:oy, ang:ang, len:len, tw:tw, bw:bw, sc:sc, op:0, mxOp: 0.185+Math.random()*0.152, age:0, life: 4000+Math.random()*3000, st:'in', fd: 2500+Math.random()*1500, foS:0, yO:0, yD:yD, yS:3, rO:0, rD: Math.random()>0.5 ? 1 : -1, rS: rS_deg*DEG/1000, mR: mR_deg*DEG, bS: 0.0004+Math.random()*0.0006, bP: Math.random()*Math.PI*2, bA: 0.08+Math.random()*0.10, strips:strips, layer:layer, maskSeed: Math.random()*10000, maskSpeed: 0.00012+Math.random()*0.00028 };
 }
 
-/* Cập nhật ray — fade quintic cực mượt */
 function upCanvasRay(r, dtMs, t){
     r.age += dtMs;
-    if(r.st === 'in'){
-        var p = cl(r.age/r.fd, 0, 1);
-        r.op = r.mxOp * (1 - Math.pow(1-p, 5));
-        if(p >= 1) r.st = 'live';
-    }
-    else if(r.st === 'live'){
-        var br = Math.sin(t*r.bS + r.bP);
-        r.op = r.mxOp * (1 - r.bA + r.bA*(0.5+0.5*br));
-        r.yO += r.yD * r.yS * (dtMs/1000);
-        r.rO += r.rD * r.rS * dtMs;
-        if(Math.abs(r.rO) > r.mR) r.rD = -r.rD;
-        if(r.age >= r.life){ r.st = 'out'; r.foS = r.age; }
-    }
-    else if(r.st === 'out'){
-        r.yO += r.yD * r.yS * (dtMs/1000);
-        r.rO += r.rD * r.rS * dtMs;
-        if(Math.abs(r.rO) > r.mR) r.rD = -r.rD;
-        var p2 = cl((r.age - r.foS)/r.fd, 0, 1);
-        r.op = r.mxOp * (1 - p2*p2*p2*p2*p2);
-        if(p2 >= 1) r.st = 'dead';
-    }
+    if(r.st === 'in'){ var p = cl(r.age/r.fd, 0, 1); r.op = r.mxOp * (1 - Math.pow(1-p, 5)); if(p >= 1) r.st = 'live'; }
+    else if(r.st === 'live'){ var br = Math.sin(t*r.bS + r.bP); r.op = r.mxOp * (1 - r.bA + r.bA*(0.5+0.5*br)); r.yO += r.yD * r.yS * (dtMs/1000); r.rO += r.rD * r.rS * dtMs; if(Math.abs(r.rO) > r.mR) r.rD = -r.rD; if(r.age >= r.life){ r.st = 'out'; r.foS = r.age; } }
+    else if(r.st === 'out'){ r.yO += r.yD * r.yS * (dtMs/1000); r.rO += r.rD * r.rS * dtMs; if(Math.abs(r.rO) > r.mR) r.rD = -r.rD; var p2 = cl((r.age - r.foS)/r.fd, 0, 1); r.op = r.mxOp * (1 - p2*p2*p2*p2*p2); if(p2 >= 1) r.st = 'dead'; }
 }
 
-/* Vẽ ray — 1 drawImage/dải, không ngắt, additive blend */
 function drCanvasRay(cx, r, t){
     if(r.op < 0.001) return;
-    cx.save();
-    cx.translate(r.x, r.y+r.yO);
-    cx.rotate(r.ang+r.rO);
-    cx.globalCompositeOperation = 'source-over';
-    var hl = r.len/2;
-    var midW = lp(r.tw, r.bw, 0.5);
+    cx.save(); cx.translate(r.x, r.y+r.yO); cx.rotate(r.ang+r.rO);
+    var hl = r.len/2; var midW = lp(r.tw, r.bw, 0.5);
     for(var i = 0; i < r.strips.length; i++){
-        var st = r.strips[i];
-        cx.globalAlpha = r.op * st.alpha;
-        var tx = stripTx[st.tIdx];
-        var ctrX = st.f * midW;
+        var st = r.strips[i]; cx.globalAlpha = r.op * st.alpha;
+        var tx = stripTx[st.tIdx]; var ctrX = st.f * midW;
         var nV = (n2d(st.nSeed, t*st.nSpeed) - 0.5)*2*st.nAmp;
         cx.drawImage(tx, ctrX-st.w/2+nV, -hl, st.w, r.len);
     }
-    /* Noise mask dọc trục */
-    var mSegs = 8, mSegL = r.len/mSegs;
+    var mSegs = isMobile ? 4 : 8, mSegL = r.len/mSegs;
     for(var m = 0; m < mSegs; m++){
-        var my = -hl + m*mSegL;
-        var mr = (m+0.5)/mSegs;
-        var mlw = lp(r.tw, r.bw, mr);
-        var mn = n2d(r.maskSeed+m*3, t*r.maskSpeed);
-        var mOp = Math.max(0, (mn-0.2)) * r.op * 0.18;
-        if(mOp < 0.001) continue;
-        cx.globalAlpha = mOp;
-        cx.fillRect(-mlw*0.6, my, mlw*1.2, mSegL+1);
+        var my = -hl + m*mSegL; var mr = (m+0.5)/mSegs; var mlw = lp(r.tw, r.bw, mr);
+        var mn = n2d(r.maskSeed+m*3, t*r.maskSpeed); var mOp = Math.max(0, (mn-0.2)) * r.op * 0.18;
+        if(mOp < 0.001) continue; cx.globalAlpha = mOp; cx.fillRect(-mlw*0.6, my, mlw*1.2, mSegL+1);
     }
-    /* Core sáng tâm */
-    cx.globalAlpha = r.op * 0.04;
-    cx.fillRect(-r.tw*0.08, -hl, r.tw*0.16, r.len);
-    cx.globalCompositeOperation = 'source-over';
-    cx.globalAlpha = 1;
-    cx.restore();
+    cx.globalAlpha = r.op * 0.04; cx.fillRect(-r.tw*0.08, -hl, r.tw*0.16, r.len);
+    cx.globalAlpha = 1; cx.restore();
 }
-/* Build cache tọa độ ray để check bụi nhanh */
+
 function buildRayCache(rays, cache){
     cache.length = 0;
     for(var i = 0; i < rays.length; i++){
-        var r = rays[i];
-        if(r.op < 0.01 || r.st === 'dead') continue;
+        var r = rays[i]; if(r.op < 0.01 || r.st === 'dead') continue;
         var a = -(r.ang + r.rO);
-        cache.push({
-            x: r.x, y: r.y+r.yO,
-            ca: Math.cos(a), sa: Math.sin(a),
-            hl: r.len/2, tw: r.tw, bw: r.bw,
-            rOp: r.op/r.mxOp
-        });
+        cache.push({ x: r.x, y: r.y+r.yO, ca: Math.cos(a), sa: Math.sin(a), hl: r.len/2, tw: r.tw, bw: r.bw, rOp: r.op/r.mxOp });
     }
 }
-/* Kiểm tra hạt bụi trong ray — trả về 0-1 */
+
 function dustRayLight(d, cache){
     var maxL = 0;
     for(var i = 0; i < cache.length; i++){
-        var r = cache[i];
-        var dx = d.x-r.x, dy = d.y-r.y;
-        var lx = dx*r.ca - dy*r.sa;
-        var ly = dx*r.sa + dy*r.ca;
+        var r = cache[i]; var dx = d.x-r.x, dy = d.y-r.y; var lx = dx*r.ca - dy*r.sa; var ly = dx*r.sa + dy*r.ca;
         if(ly < -r.hl || ly > r.hl) continue;
-        var ratio = (ly+r.hl)/r.len;
-        var halfW = lp(r.tw, r.bw, ratio)*0.5;
-        var dist = Math.abs(lx);
+        var ratio = (ly+r.hl)/r.len; var halfW = lp(r.tw, r.bw, ratio)*0.5; var dist = Math.abs(lx);
         if(dist > halfW*1.15) continue;
-        var depth = 1 - dist/(halfW*1.15);
-        depth = depth * depth;
-        var l = depth * r.rOp;
+        var depth = 1 - dist/(halfW*1.15); depth = depth * depth; var l = depth * r.rOp;
         if(l > maxL) maxL = l;
     }
     return cl(maxL, 0, 1);
 }
-/* Quản lý ray — spawn/remove mượt */
-function manageCanvasRays(now){
-    var dtMs = 16; /* ước lượng cho upRay */
-    /* Cập nhật & vẽ back rays */
-    cxRB.clearRect(0, 0, W, H);
-    for(var i = raysB.length-1; i >= 0; i--){
-        upCanvasRay(raysB[i], dtMs, gTime);
-        if(raysB[i].st === 'dead') raysB.splice(i, 1);
-        else drCanvasRay(cxRB, raysB[i], gTime);
-    }
 
-    /* Cập nhật & vẽ top rays */
-    cxRT.clearRect(0, 0, W, H);
-    for(var j = raysT.length-1; j >= 0; j--){
-        upCanvasRay(raysT[j], dtMs, gTime);
-        if(raysT[j].st === 'dead') raysT.splice(j, 1);
-        else drCanvasRay(cxRT, raysT[j], gTime);
-    }
-    /* Spawn logic */
+function manageCanvasRays(dtMs){
+    for(var i = raysB.length-1; i >= 0; i--){ upCanvasRay(raysB[i], dtMs, gTime); if(raysB[i].st === 'dead') raysB.splice(i, 1); }
+    for(var j = raysT.length-1; j >= 0; j--){ upCanvasRay(raysT[j], dtMs, gTime); if(raysT[j].st === 'dead') raysT.splice(j, 1); }
     var total = raysB.length + raysT.length;
-    if(total < MIN_RAYS){
-        var bx = Math.random() > 0.5 ? 'top' : 'bottom';
-        if(bx === 'bottom') raysB.push(mkCanvasRay('bottom'));
-        else raysT.push(mkCanvasRay('top'));
-    }
-    else if(total < MAX_RAYS && Math.random() < 0.007){
-        var bx2 = Math.random() > 0.5 ? 'top' : 'bottom';
-        if(bx2 === 'bottom') raysB.push(mkCanvasRay('bottom'));
-        else raysT.push(mkCanvasRay('top'));
-    }
+    if(total < MIN_RAYS){ if(Math.random() > 0.5) raysB.push(mkCanvasRay('bottom')); else raysT.push(mkCanvasRay('top')); }
+    else if(total < MAX_RAYS && Math.random() < 0.007){ if(Math.random() > 0.5) raysB.push(mkCanvasRay('bottom')); else raysT.push(mkCanvasRay('top')); }
 }
-/* Tia ban đầu — xuất hiện độc lập */
+
+/* ==================== VẼ TỔNG HỢP 1 LỚP ==================== */
+function drawBackLayer(t){
+    cxB.clearRect(0, 0, W, H);
+    for(var i = 0; i < dustB.length; i++){
+        var p = dustB[i]; steer(p, t);
+        var lf = dustRayLight(p, raysBCache);
+        var op = cl(p.op + Math.sin(t * 0.7 + p.ph) * 0.04, 0, 1);
+        
+        if(lf > 0.05){
+            // Nhỏ lại bằng cách giảm hệ số nhân (từ 10 xuống 6)
+            var gs = p.sz * 6 * (1 + lf * 1.2); 
+            cxB.globalAlpha = op * lf * 0.75;
+            cxB.drawImage(dustGlowTx, p.x - gs/2, p.y - gs/2, gs, gs);
+            var cs = p.sz * 3 * (1 + lf * 0.5); 
+            cxB.globalAlpha = Math.min(1, op * (1.2 + lf * 4.5));
+            cxB.drawImage(dustCoreTx, p.x - cs, p.y - cs, cs*2, cs*2);
+        } else {
+            // Nhỏ lại bằng cách giảm hệ số nhân (từ 2 xuống 1.2)
+            var drawSz = p.sz * 1.2;
+            cxB.globalAlpha = op * 0.6;
+            cxB.drawImage(dustNormCoolTx, p.x - drawSz, p.y - drawSz, drawSz*2, drawSz*2);
+        }
+    }
+    
+    for(var j = 0; j < spkB.length; j++){
+        var sp = spkB[j]; steer(sp, t);
+        var raw = Math.sin(t*sp.flSpd+sp.flPh); var flash = Math.pow(Math.max(0, raw), 4);
+        var op = sp.baseOp * flash;
+        if(op < 0.012) continue;
+        var ss = sp.sz * 6; // Nhỏ lại sparkle
+        cxB.globalAlpha = op;
+        cxB.drawImage(sparkleTx, sp.x - ss, sp.y - ss, ss*2, ss*2);
+    }
+    
+    for(var k = 0; k < raysB.length; k++) drCanvasRay(cxB, raysB[k], gTime);
+    cxB.globalAlpha = 1;
+}
+
+function drawTopLayer(t){
+    cxT.clearRect(0, 0, W, H);
+    for(var k = 0; k < raysT.length; k++) drCanvasRay(cxT, raysT[k], gTime);
+    
+    for(var i = 0; i < dustT.length; i++){
+        var p = dustT[i]; steer(p, t);
+        var lf1 = dustRayLight(p, raysBCache);
+        var lf2 = dustRayLight(p, raysTCache);
+        var lf = lf1 > lf2 ? lf1 : lf2;
+        
+        var op = cl(p.op + Math.sin(t * 0.7 + p.ph) * 0.04, 0, 1);
+        
+        if(lf > 0.05){
+            var gs = p.sz * 6 * (1 + lf * 1.2);
+            cxT.globalAlpha = op * lf * 0.75;
+            cxT.drawImage(dustGlowTx, p.x - gs/2, p.y - gs/2, gs, gs);
+            var cs = p.sz * 3 * (1 + lf * 0.5);
+            cxT.globalAlpha = Math.min(1, op * (1.2 + lf * 4.5));
+            cxT.drawImage(dustCoreTx, p.x - cs, p.y - cs, cs*2, cs*2);
+        } else {
+            var drawSz = p.sz * 1.2;
+            cxT.globalAlpha = op * 0.6;
+            cxT.drawImage(dustNormWarmTx, p.x - drawSz, p.y - drawSz, drawSz*2, drawSz*2);
+        }
+    }
+    
+    for(var j = 0; j < spkT.length; j++){
+        var sp = spkT[j]; steer(sp, t);
+        var raw = Math.sin(t*sp.flSpd+sp.flPh); var flash = Math.pow(Math.max(0, raw), 4);
+        var op = sp.baseOp * flash;
+        if(op < 0.012) continue;
+        var ss = sp.sz * 6;
+        cxT.globalAlpha = op;
+        cxT.drawImage(sparkleTx, sp.x - ss, sp.y - ss, ss*2, ss*2);
+    }
+    
+    cxT.globalAlpha = 1;
+}
+
+/* ==================== VÒNG LẶP CHÍNH ==================== */
+var targetFPS = isMobile ? 30 : 60;
+var frameInterval = 1000 / targetFPS;
+var lastFrame = 0;
+var pageVisible = true;
+
+document.addEventListener("visibilitychange", function(){
+    pageVisible = !document.hidden;
+    if(pageVisible) lastT = performance.now();
+});
+
 setTimeout(function(){ raysB.push(mkCanvasRay('bottom')); }, 180);
 setTimeout(function(){ raysT.push(mkCanvasRay('top')); }, 1100);
 setTimeout(function(){ raysB.push(mkCanvasRay('bottom')); }, 2600);
 setTimeout(function(){ raysT.push(mkCanvasRay('top')); }, 4200);
 setTimeout(function(){ raysB.push(mkCanvasRay('bottom')); }, 6800);
 
-/* ==================== SƯƠNG MÙ ==================== */
-function mkFogBlob(box, layer){
-    var el = document.createElement('div');
-    el.className = 'fog-bl';
-    var s = 260+Math.random()*580;
-    var isWarm = Math.random()>0.28;
-    var isLarge = s>520;
-    var baseOp = layer==='bottom' ? 0.6 : 0.32;
-    var h, sa, l, a1, a2, a3;
-    if(isWarm){
-        h=36+Math.random()*14; sa=40+Math.random()*20; l=80+Math.random()*8;
-        a1=isLarge?0.065+Math.random()*0.04:0.04+Math.random()*0.03;
-        a2=isLarge?0.028+Math.random()*0.02:0.016+Math.random()*0.014;
-        a3=a2*0.4;
-    }
-    else{
-        h=212+Math.random()*22; sa=16+Math.random()*14; l=74+Math.random()*8;
-        a1=0.022+Math.random()*0.016; a2=0.01+Math.random()*0.01; a3=a2*0.3;
-    }
-    el.style.width = s+'px';
-    el.style.height = (s*0.32+Math.random()*s*0.42)+'px';
-    el.style.background =
-        'radial-gradient(ellipse at 36% 40%,hsla('+h+','+sa+'%,'+l+'%,'+a1+') 0%,transparent 50%),' +
-        'radial-gradient(ellipse at 64% 58%,hsla('+(h+6)+','+Math.max(0,sa-6)+'%,'+(l+2)+'%,'+a2+') 0%,transparent 58%),' +
-        'radial-gradient(ellipse at 50% 50%,hsla('+h+','+Math.max(0,sa-12)+'%,'+Math.max(0,l-6)+'%,'+a3+') 0%,transparent 75%)';
-    el.style.filter = 'blur('+(isLarge?85:58)+'px)';
-    if(isWarm){
-        el.style.left=(38+Math.random()*58)+'%'; 
-        el.style.top=(Math.random()*55)+'%'; 
-    }
-    else{
-        el.style.left=(Math.random()*100)+'%'; 
-        el.style.top=(Math.random()*100)+'%';
-    }
-    box.appendChild(el);
-    return {
-        el:el, dx:(Math.random()-0.5)*150, dy:(Math.random()-0.5)*85,
-        spd:0.00018+Math.random()*0.00032, ph:Math.random()*Math.PI*2,
-        opSpd:0.00028+Math.random()*0.00038, opPh:Math.random()*Math.PI*2,
-        opRng:0.12+Math.random()*0.22, baseOp:baseOp
-    };
-}
-function buildFog(){
-    fogBoxB.innerHTML=''; fogBoxT.innerHTML=''; fogArr=[];
-    for(var i=0;i<10;i++) fogArr.push(mkFogBlob(fogBoxB,'bottom'));
-    for(var i=0;i<7;i++) fogArr.push(mkFogBlob(fogBoxT,'top'));
-}
-buildFog();
-function tickFog(now){
-    for(var i=0;i<fogArr.length;i++){
-        var f=fogArr[i];
-        var drift=Math.sin(now*f.spd+f.ph);
-        var opMod=1-Math.sin(now*f.opSpd+f.opPh)*f.opRng;
-        opMod=cl(opMod,0.45,1.15);
-        f.el.style.transform='translate('+(f.dx*drift).toFixed(1)+'px,'+(f.dy*drift).toFixed(1)+'px)';
-        f.el.style.opacity=(f.baseOp*opMod).toFixed(4);
-    }
-}
-
-/* =========VẼ TOÀN BỘ MỘT LỚP — bụi + sparkle + DUST LIGHTING=========== */
-function drawLayer(cx, dArr, sArr, t, warm, rayCache){
-    cx.clearRect(0, 0, W, H);
-
-    var particleCount = dArr.length;
-
-    if(isLowPower){
-        particleCount = Math.min(
-            particleCount,
-            Math.floor(dArr.length * 0.65)
-        );
-    }
-
-    for(var i = 0; i < particleCount; i++){
-        var p = dArr[i];
-
-        steer(p, t);
-
-        var lf = dustRayLight(p, rayCache);
-
-        var op = p.op + Math.sin(t * 0.7 + p.ph) * 0.04;
-        op = cl(op, 0, 1);
-
-        if(lf > 0.05){
-            /* =========================
-               TRONG TIA NẮNG
-               Giữ nguyên dustGlowTx
-               ========================= */
-
-            var gs = p.sz * 10 * (1 + lf * 1.5);
-
-            cx.globalAlpha = op * lf * 0.75;
-
-            cx.drawImage(
-                dustGlowTx,
-                p.x - gs / 2,
-                p.y - gs / 2,
-                gs,
-                gs
-            );
-
-            var cs = p.sz * 5 * (1 + lf * 0.5);
-
-            var coreAlpha = Math.min(
-                1,
-                op * (1.2 + lf * 4.5)
-            );
-
-            cx.globalAlpha = coreAlpha;
-
-            var g = cx.createRadialGradient(
-                p.x,
-                p.y,
-                0,
-                p.x,
-                p.y,
-                Math.max(EPS, cs)
-            );
-
-            g.addColorStop(
-                0,
-                "rgba(255,235,150,1)"
-            );
-
-            g.addColorStop(
-                0.4,
-                "rgba(255,235,150,.3)"
-            );
-
-            g.addColorStop(
-                1,
-                "rgba(255,235,150,0)"
-            );
-
-            cx.fillStyle = g;
-
-            cx.beginPath();
-
-            cx.arc(
-                p.x,
-                p.y,
-                Math.max(EPS, cs),
-                0,
-                Math.PI * 2
-            );
-
-            cx.fill();
-        }
-        else{
-            /* =========================
-               NGOÀI TIA NẮNG
-               Giữ nguyên gradient mềm
-               ========================= */
-
-            var realOp = op * 0.6;
-
-            var cr2 = warm ? 255 : 212;
-            var cg2 = warm ? 222 : 192;
-            var cb2 = warm ? 165 : 148;
-
-            var r = Math.max(EPS, p.sz);
-
-            var g2 = cx.createRadialGradient(
-                p.x,
-                p.y,
-                0,
-                p.x,
-                p.y,
-                r
-            );
-
-            g2.addColorStop(
-                0,
-                "rgba(" +
-                cr2 + "," +
-                cg2 + "," +
-                cb2 +
-                ",1)"
-            );
-
-            g2.addColorStop(
-                0.45,
-                "rgba(" +
-                cr2 + "," +
-                cg2 + "," +
-                cb2 +
-                ",.32)"
-            );
-
-            g2.addColorStop(
-                1,
-                "rgba(" +
-                cr2 + "," +
-                cg2 + "," +
-                cb2 +
-                ",0)"
-            );
-
-            cx.globalAlpha = realOp;
-
-            cx.fillStyle = g2;
-
-            cx.beginPath();
-
-            cx.arc(
-                p.x,
-                p.y,
-                r,
-                0,
-                Math.PI * 2
-            );
-
-            cx.fill();
-        }
-    }
-
-    cx.globalAlpha = 1;
-
-    /* =========================
-       SPARKLE
-       ========================= */
-
-    var sparkleCount = sArr.length;
-
-    if(isLowPower){
-        sparkleCount = Math.min(
-            sparkleCount,
-            Math.floor(sArr.length * 0.5)
-        );
-    }
-
-    for(var j = 0; j < sparkleCount; j++){
-        var sp = sArr[j];
-
-        steer(sp, t);
-
-        drawSparkle(
-            cx,
-            sp,
-            t
-        );
-    }
-
-    cx.globalAlpha = 1;
-}
-
-/* ==================== VÒNG LẶP CHÍNH ==================== */
-var isMobile = window.matchMedia("(max-width: 768px)").matches;
-var isLowPower = isMobile || navigator.hardwareConcurrency <= 4;
-var targetFPS = isLowPower ? 30 : 60;
-var frameInterval = 1000 / targetFPS;
-var lastFrame = 0;
-var pageVisible = true;
-var combinedRayCache = [];
-
-document.addEventListener("visibilitychange", function(){
-    pageVisible = !document.hidden;
-    if(pageVisible){
-        lastT = performance.now();
-    }
-});
-
 function loop(now){
-    if(!pageVisible){
-        requestAnimationFrame(loop);
-        return;
-    }
-
-    if(now - lastFrame < frameInterval){
-        requestAnimationFrame(loop);
-        return;
-    }
-
+    if(!pageVisible){ requestAnimationFrame(loop); return; }
+    if(now - lastFrame < frameInterval){ requestAnimationFrame(loop); return; }
     lastFrame = now;
 
-    var dt = (now - lastT) / 1000;
-    if(dt > 0.1) dt = 0.1;
-    lastT = now;
-    gTime += dt;
+    var dt = (now - lastT) / 1000; if(dt > 0.1) dt = 0.1; lastT = now; gTime += dt;
+    var dtMs = dt * 1000;
 
     buildRayCache(raysB, raysBCache);
     buildRayCache(raysT, raysTCache);
+    manageCanvasRays(dtMs);
 
-    if(isLowPower){
-        combinedRayCache.length = 0;
-
-        for(var i = 0; i < raysBCache.length; i++){
-            combinedRayCache.push(raysBCache[i]);
-        }
-
-        for(var j = 0; j < raysTCache.length; j++){
-            combinedRayCache.push(raysTCache[j]);
-        }
-
-        drawLayer(
-            cxB,
-            dustB,
-            spkB,
-            gTime,
-            false,
-            raysBCache
-        );
-
-        drawLayer(
-            cxT,
-            dustT,
-            spkT,
-            gTime,
-            true,
-            combinedRayCache
-        );
-    }
-    else{
-        drawLayer(
-            cxB,
-            dustB,
-            spkB,
-            gTime,
-            false,
-            raysBCache
-        );
-
-        drawLayer(
-            cxT,
-            dustT,
-            spkT,
-            gTime,
-            true,
-            raysBCache.concat(raysTCache)
-        );
-    }
-
-    tickFog(now);
-    manageCanvasRays(now);
+    drawBackLayer(gTime);
+    drawTopLayer(gTime);
 
     requestAnimationFrame(loop);
 }
