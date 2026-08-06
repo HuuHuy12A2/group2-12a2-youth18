@@ -510,8 +510,8 @@ let startX, startY;
 let currentX = 0;
 let currentY = 0;
 const MIN_ZOOM = 1;
-const MAX_ZOOM = 5;
-const batchSize = 20;
+const MAX_ZOOM = 8;
+const batchSize = 15;
 
 /* ================= LOAD JSON ================= */
 async function loadMedia() {
