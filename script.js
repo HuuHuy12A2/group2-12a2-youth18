@@ -499,7 +499,6 @@ const totalCount = document.getElementById("totalCount");
 const filterContent = document.querySelector(".filter-content");
 const filterBox = document.querySelector(".filter");
 const toggleFilterBtn = document.querySelector(".toggle-filter");
-
 let mediaData = [];
 let filteredData = [];
 let activeTags = [];
@@ -510,8 +509,10 @@ let startX, startY;
 let currentX = 0;
 let currentY = 0;
 const MIN_ZOOM = 1;
-const MAX_ZOOM = 8;
-const batchSize = 15;
+const MAX_ZOOM = 5;
+const batchSize = 20;
+
+let galleryObserver = null;
 
 /* ================= LOAD JSON ================= */
 async function loadMedia() {
@@ -537,43 +538,28 @@ function isYouTubeUrl(src) {
             url.hostname === "youtu.be" ||
             url.hostname === "m.youtube.com"
         );
-    } catch {
-        return false;
-    }
+    } catch { return false; }
 }
+
 function getYouTubeEmbedUrl(src) {
     try {
         const url = new URL(src);
         let videoId = "";
-        if (url.hostname === "youtu.be") {
-            videoId = url.pathname.slice(1);
-        } else if (url.searchParams.has("v")) {
-            videoId = url.searchParams.get("v");
-        } else if (url.pathname.startsWith("/embed/")) {
-            videoId = url.pathname.split("/embed/")[1];
-        } else if (url.pathname.startsWith("/shorts/")) {
-            videoId = url.pathname.split("/shorts/")[1];
-        }
-        if (!videoId) {
-            return null;
-        }
+        if (url.hostname === "youtu.be") videoId = url.pathname.slice(1);
+        else if (url.searchParams.has("v")) videoId = url.searchParams.get("v");
+        else if (url.pathname.startsWith("/embed/")) videoId = url.pathname.split("/embed/")[1];
+        else if (url.pathname.startsWith("/shorts/")) videoId = url.pathname.split("/shorts/")[1];
+        if (!videoId) return null;
         videoId = videoId.split("?")[0].split("&")[0];
         return `https://www.youtube.com/embed/${videoId}`;
-    } catch {
-        return null;
-    }
+    } catch { return null; }
 }
+
 /* ================= TAG RENDER ================= */
 function renderTags() {
     const tagMap = {};
-    mediaData.forEach(m => {
-        m.tags.forEach(t => {
-            tagMap[t] = (tagMap[t] || 0) + 1;
-        });
-    });
-    const sorted = Object.keys(tagMap)
-        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-
+    mediaData.forEach(m => { m.tags.forEach(t => { tagMap[t] = (tagMap[t] || 0) + 1; }); });
+    const sorted = Object.keys(tagMap).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     sorted.forEach(tag => {
         const btn = document.createElement("button");
         btn.className = "tag-btn";
@@ -585,81 +571,140 @@ function renderTags() {
 
 /* ================= FILTER AND ================= */
 function applyFilter() {
-    if (activeTags.length === 0) {
-        filteredData = [...mediaData];
-    } else {
-        filteredData = mediaData.filter(m =>
-            activeTags.every(t => m.tags.includes(t))
-        );
-    }
+    if (activeTags.length === 0) filteredData = [...mediaData];
+    else filteredData = mediaData.filter(m => activeTags.every(t => m.tags.includes(t)));
     resetGallery();
 }
 
 /* ================= RESET ================= */
 function resetGallery() {
+    if (galleryObserver) galleryObserver.disconnect();
     container.innerHTML = "";
     loaded = 0;
     totalCount.textContent = `Tổng số được chọn: ${filteredData.length} media`;
+    initObserver();
     renderBatch();
+}
+
+/* ================= INTERSECTION OBSERVER ================= */
+function initObserver() {
+    galleryObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const item = entry.target;
+            if (entry.isIntersecting) loadMediaElement(item);
+            else unloadMediaElement(item);
+        });
+    }, {
+        root: document.querySelector(".gallery"),
+        rootMargin: "300px 0px",
+        threshold: 0
+    });
+}
+
+// HÀM TẢI MEDIA
+function loadMediaElement(wrapper) {
+    const el = wrapper.querySelector('img, video, iframe');
+    const m = wrapper._mediaData;
+    if (!el || !m) return;
+
+    if (el.tagName === "IMG") {
+        // Ảnh: Nếu chưa có src thì nạp vào. Nếu có rồi thì chỉ việc bỏ class ẩn đi
+        if (!el.src || el.src === window.location.href) {
+            el.src = m.src;
+        }
+        el.classList.remove("img-hidden"); // Rã đông ảnh từ Cache
+        wrapper._isLoaded = true;
+        wrapper.classList.remove("unloaded");
+    } else {
+        // Video & YouTube: Chỉ tải 1 lần duy nhất
+        if (wrapper._isLoaded) return;
+        wrapper._isLoaded = true;
+        wrapper.classList.remove("unloaded");
+
+        if (m.type === "video") {
+            if (m._embedUrl) {
+                el.src = m._embedUrl;
+            } else {
+                const source = el.querySelector('source');
+                if (source) {
+                    source.src = m.src;
+                    el.load();
+                }
+            }
+        }
+    }
+}
+
+// HÀM "ĐÓNG BĂNG" MEDIA
+function unloadMediaElement(wrapper) {
+    if (!wrapper._isLoaded) return;
+    
+    const el = wrapper.querySelector('img, video, iframe');
+    if (!el) return;
+
+    if (el.tagName === "IMG") {
+        // ẢNH: KHÔNG XÓA SRC. Chỉ thêm class ẩn để GPU không vẽ nữa -> Giữ lại Cache tiết kiệm Data
+        el.classList.add("img-hidden");
+    } else if (el.tagName === "IFRAME") {
+        // YOUTUBE: Phải xóa src để dừng tiến trình JS nặng nề
+        wrapper._isLoaded = false;
+        el.src = "";
+    } else if (el.tagName === "VIDEO") {
+        // VIDEO: Xóa src để giải phóng RAM nặng
+        wrapper._isLoaded = false;
+        el.pause();
+        const source = el.querySelector('source');
+        if (source) source.src = "";
+        el.load();
+    }
 }
 
 /* ================= RENDER BATCH ================= */
 function renderBatch() {
     if (loaded >= filteredData.length) return;
-
     const next = filteredData.slice(loaded, loaded + batchSize);
-
+    
     next.forEach((m, i) => {
         const wrapper = document.createElement("div");
-        wrapper.className = "media-item";
+        wrapper.className = "media-item unloaded";
         wrapper.dataset.index = loaded + i;
+        wrapper._mediaData = m;
+        wrapper._isLoaded = false;
 
         let el;
-
         if (m.type === "image") {
             el = document.createElement("img");
-            el.src = m.src;
-            el.loading = "lazy";
+            // KHÔNG set src ở đây
         } else if (m.type === "video") {
             if (isYouTubeUrl(m.src)) {
                 const embedUrl = getYouTubeEmbedUrl(m.src);
-
                 if (!embedUrl) return;
-
+                m._embedUrl = embedUrl;
                 el = document.createElement("iframe");
-                el.src = embedUrl;
-                el.loading = "lazy";
-                el.allow =
-                    "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+                el.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
                 el.allowFullscreen = true;
             } else {
                 el = document.createElement("video");
                 el.controls = true;
                 el.preload = "none";
-
-                const source = document.createElement("source");
-                source.src = m.src;
+                const source = el.createElement("source"); // Sửa lỗi el.createElement thành document.createElement
                 source.type = "video/mp4";
-
                 el.appendChild(source);
             }
-        } else {
-            return;
-        }
+        } else { return; }
 
         wrapper.appendChild(el);
         container.appendChild(wrapper);
+        galleryObserver.observe(wrapper);
     });
-
     loaded += next.length;
 }
+
 /* ================= INFINITE SCROLL ================= */
 const gallery = document.querySelector(".gallery");
 gallery.addEventListener("scroll", () => {
     if (gallery.scrollTop + gallery.clientHeight >= gallery.scrollHeight - 200) {
-        if (loaded < filteredData.length) {
-            renderBatch();
-        }
+        if (loaded < filteredData.length) renderBatch();
     }
 });
 
@@ -670,15 +715,11 @@ document.addEventListener("click", e => {
         const tag = clickedBtn.dataset.tag;
         const allBtns = document.querySelectorAll(".tag-btn");
         if (tag === "all") {
-            // Reset tất cả tag
             activeTags = [];
             allBtns.forEach(btn => btn.classList.remove("active"));
             clickedBtn.classList.add("active");
-        } 
-        else {
-            // Bỏ active khỏi nút "Tất cả"
+        } else {
             document.querySelector('[data-tag="all"]').classList.remove("active");
-            // Toggle tag trong mảng
             if (activeTags.includes(tag)) {
                 activeTags = activeTags.filter(t => t !== tag);
                 clickedBtn.classList.remove("active");
@@ -686,176 +727,149 @@ document.addEventListener("click", e => {
                 activeTags.push(tag);
                 clickedBtn.classList.add("active");
             }
-            // Nếu không còn tag nào → bật lại "Tất cả"
-            if (activeTags.length === 0) {
-                document.querySelector('[data-tag="all"]').classList.add("active");
-            }
+            if (activeTags.length === 0) document.querySelector('[data-tag="all"]').classList.add("active");
         }
         applyFilter();
     }
 });
 
 /* ================= MOBILE FILTER TOGGLE ================= */
-toggleFilterBtn.onclick = () => {
-    filterBox.classList.toggle("open");
-};
+toggleFilterBtn.onclick = () => { filterBox.classList.toggle("open"); };
 
 /* ================= POPUP ================= */
-openBtn.onclick = e => {
-    e.preventDefault();
-    popup.classList.add("show");
-    document.body.classList.add("lock");
-};
-function closeViewer() {
-    viewer.classList.remove("show");
-    stopVideos();
-}
-function closePopup() {
-    closeViewer();
-    popup.classList.remove("show");
-    document.body.classList.remove("lock");
-}
-closeBtn.onclick = closePopup;
-popup.addEventListener("click", (e) => {
-    if (e.target === popup) {
-        closePopup();
-    }
-});
+openBtn.onclick = e => { e.preventDefault(); popup.classList.add("show"); document.body.classList.add("lock"); };
 
-/* ================= STOP VIDEO ================= */
-function stopVideos() {
-    document.querySelectorAll("video").forEach(v => {
-        v.pause();
-        v.currentTime = 0;
-    });
-}
+function closeViewer() { viewer.classList.remove("show"); stopVideos(); resetZoom(); }
+function closePopup() { closeViewer(); popup.classList.remove("show"); document.body.classList.remove("lock"); }
+
+closeBtn.onclick = closePopup;
+popup.addEventListener("click", (e) => { if (e.target === popup) closePopup(); });
+
+function stopVideos() { document.querySelectorAll("video").forEach(v => { v.pause(); v.currentTime = 0; }); }
 
 /* ================= VIEWER ================= */
 const viewer = document.querySelector(".viewer");
 const viewerContent = document.querySelector(".viewer-content");
 let currentIndex = 0;
+
 container.addEventListener("click", e => {
     const item = e.target.closest(".media-item");
     if (!item) return;
     currentIndex = Number(item.dataset.index);
     openViewer(currentIndex);
 });
-function openViewer(i) {
-    viewer.classList.add("show");
-    renderViewer(i);
-    resetZoom();
-}
+
+function openViewer(i) { viewer.classList.add("show"); renderViewer(i); resetZoom(); }
+
 function renderViewer(i) {
-    viewerContent.innerHTML= "";
+    viewerContent.innerHTML = "";
     if (i < 0 || i >= filteredData.length) return;
     const m = filteredData[i];
     if (!m || !m.src) return;
+
     let el;
     if (m.type === "image") {
         el = document.createElement("img");
         el.src = m.src;
+    } else if (m.type === "video") {
+        if (isYouTubeUrl(m.src)) {
+            const embedUrl = getYouTubeEmbedUrl(m.src);
+            if (!embedUrl) return;
+            el = document.createElement("iframe");
+            el.src = embedUrl;
+            el.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+            el.allowFullscreen = true;
+        } else {
+            el = document.createElement("video");
+            el.controls = true; el.autoplay = true;
+            const source = document.createElement("source");
+            source.src = m.src; source.type = "video/mp4";
+            el.appendChild(source);
+        }
     }
-    else if (m.type === "video") {
-        el = document.createElement("video");
-        el.controls = true;
-        const source = document.createElement("source");
-        source.src = m.src;
-        source.type = "video/mp4";
-        el.appendChild(source);
-    }
-    if (el) {
-        el.classList.add(".viewer-content");
-        el.draggable = false;
-        el.addEventListener("dragstart", e => e.preventDefault());
-    }
+    if (el) { el.draggable = false; el.addEventListener("dragstart", e => e.preventDefault()); }
     viewerContent.appendChild(el);
 }
 
 /*=========zoom viewer==========*/
 viewer.addEventListener("wheel", e => {
-    const media = viewer.querySelector(".viewer-content");
-    if (!media) return;
-    e.preventDefault();
+    if (!viewerContent) return; e.preventDefault();
     const zoomSpeed = 0.1;
-    if (e.deltaY < 0) {
-        scale += zoomSpeed;
-    }
-    else {
-        scale -= zoomSpeed;
-    }
-    scale = Math.max(1, Math.min(scale, 5));
-    media.style.transform =`translate(${currentX}px, ${currentY}px) scale(${scale})`;
+    if (e.deltaY < 0) scale += zoomSpeed; else scale -= zoomSpeed;
+    scale = Math.max(1, Math.min(scale, MAX_ZOOM));
+    viewerContent.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
 }, { passive: false });
 
 /*======== dragg ========*/
 viewerContent.addEventListener("mousedown", e => {
-    const media = viewer.querySelector(".viewer-content");
-    if (!media) return;
-    if (scale <= 1) return; 
-    isDragging = true;
-    startX = e.clientX - currentX;
-    startY = e.clientY - currentY;
+    if (scale <= 1) return;
+    isDragging = true; startX = e.clientX - currentX; startY = e.clientY - currentY;
     viewerContent.style.cursor = "grabbing";
 });
 window.addEventListener("mousemove", e => {
     if (!isDragging) return;
-    const media = viewer.querySelector(".viewer-content");
-    if (!media) return;
-    currentX = e.clientX - startX;
-    currentY = e.clientY - startY;
-    media.style.transform =`translate(${currentX}px, ${currentY}px) scale(${scale})`;
+    currentX = e.clientX - startX; currentY = e.clientY - startY;
+    viewerContent.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
 });
-window.addEventListener("mouseup", () => {
-    isDragging = false;
-    viewerContent.style.cursor = "grab";
-});
+window.addEventListener("mouseup", () => { isDragging = false; viewerContent.style.cursor = "grab"; });
 
+/*======== Double Click (PC) & Double Tap (Mobile) TOGGLE ZOOM ========*/
 
-/*======== reset zoom bằng double click ========*/
-viewer.addEventListener("dblclick", () => {
-    const media = viewer.querySelector(".viewer-content");
+// Hàm chung xử lý phóng to/thu nhỏ
+function toggleZoom() {
+    const media = viewerContent;
     if (!media) return;
     media.style.transition = "transform 0.35s cubic-bezier(.22,.61,.36,1)";
-    scale = 1;
-    currentX = 0;
-    currentY = 0;
-    media.style.transform = "translate(0px, 0px) scale(1)";
-    setTimeout(() => {
-        media.style.transition = "none";
-    }, 350);
+    
+    if (scale > 1) {
+        // Nếu đang phóng to -> Thu nhỏ về gốc
+        scale = 1; 
+        currentX = 0; 
+        currentY = 0;
+        media.style.transform = "translate(0px, 0px) scale(1)";
+    } else {
+        // Nếu đang ở gốc -> Phóng to lên 2.5 lần
+        scale = 2.5; 
+        currentX = 0; 
+        currentY = 0;
+        media.style.transform = `translate(0px, 0px) scale(${scale})`;
+    }
+    
+    // Bỏ transition sau khi animation xong để không bị vướng khi kéo
+    setTimeout(() => { media.style.transition = "none"; }, 350);
+}
+
+// 1. Lắng nghe cho Máy tính (PC)
+viewer.addEventListener("dblclick", toggleZoom);
+
+// 2. Lắng nghe cho Điện thoại (Mobile)
+let lastTapTime = 0;
+viewerContent.addEventListener('touchend', function(e) {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTapTime;
+    
+    // Phát hiện bấm đúp (2 lần chạm cách nhau dưới 300ms)
+    if (tapLength < 300 && tapLength > 0) {
+        e.preventDefault(); // Ngăn zoom mặc định của trình duyệt
+        toggleZoom();       // Gọi chung hàm xử lý
+        lastTapTime = 0;    // Reset để không bị nhận nhầm bấm 3 lần
+    } else {
+        lastTapTime = currentTime; // Lưu thời gian của lần chạm đầu
+    }
 });
 
 /*=========close viewer========*/
-document.querySelector(".viewer-close").onclick = () => viewer.classList.remove("show");
-viewer.addEventListener("click", (e) => {
-    if (e.target === viewer) {
-        closeViewer();
-        resetZoom();
-    }
-});
-document.querySelector(".next").onclick = () => {
-    if (currentIndex < filteredData.length - 1) {
-        currentIndex++;
-        renderViewer(currentIndex);
-    }
-};
-document.querySelector(".prev").onclick = () => {
-    if (currentIndex > 0) {
-        currentIndex--;
-        renderViewer(currentIndex);
-    }
-};
+document.querySelector(".viewer-close").onclick = () => { viewer.classList.remove("show"); resetZoom(); };
+viewer.addEventListener("click", (e) => { if (e.target === viewer) { closeViewer(); resetZoom(); } });
+document.querySelector(".next").onclick = () => { if (currentIndex < filteredData.length - 1) { currentIndex++; renderViewer(currentIndex); resetZoom(); } };
+document.querySelector(".prev").onclick = () => { if (currentIndex > 0) { currentIndex--; renderViewer(currentIndex); resetZoom(); } };
+
 /*========== reset zoom viewer =========*/
 function resetZoom() {
-    zoomScale = 1;
-    currentX = 0;
-    currentY = 0;
-    const media = viewer.querySelector(".viewer-content");
-    if (media) {
-        media.style.transform = "translate(0px, 0px) scale(1)";
-        media.style.transformOrigin = "center center";
-    }
-    viewer.style.cursor = "zoom-in";
+    scale = 1; currentX = 0; currentY = 0;
+    viewerContent.style.transform = "translate(0px, 0px) scale(1)";
+    viewerContent.style.transformOrigin = "center center";
+    viewerContent.style.cursor = "zoom-in";
 }
 
 /*===========up load=============*/
