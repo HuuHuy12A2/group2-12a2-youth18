@@ -662,44 +662,57 @@ function unloadMediaElement(wrapper) {
 /* ================= RENDER BATCH ================= */
 function renderBatch() {
     if (loaded >= filteredData.length) return;
-    const next = filteredData.slice(loaded, loaded + batchSize);
     
-    next.forEach((m, i) => {
-        const wrapper = document.createElement("div");
-        wrapper.className = "media-item unloaded";
-        wrapper.dataset.index = loaded + i;
-        wrapper._mediaData = m;
-        wrapper._isLoaded = false;
+    let itemsAdded = 0; // Chỉ đếm số ảnh/video THỰC SỰ được tạo thành công
 
-        let el;
+    // Vòng lặp chạy cho đến khi tạo ĐỦ 20 item, hoặc hết sạch dữ liệu JSON
+    while (itemsAdded < batchSize && loaded < filteredData.length) {
+        const m = filteredData[loaded];
+        let el = null;
+
         if (m.type === "image") {
             el = document.createElement("img");
-            // KHÔNG set src ở đây
         } else if (m.type === "video") {
             if (isYouTubeUrl(m.src)) {
                 const embedUrl = getYouTubeEmbedUrl(m.src);
-                if (!embedUrl) return;
-                m._embedUrl = embedUrl;
-                el = document.createElement("iframe");
-                el.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-                el.allowFullscreen = true;
+                if (embedUrl) {
+                    m._embedUrl = embedUrl;
+                    el = document.createElement("iframe");
+                    el.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+                    el.allowFullscreen = true;
+                }
             } else {
                 el = document.createElement("video");
                 el.controls = true;
                 el.preload = "none";
-                const source = el.createElement("source"); // Sửa lỗi el.createElement thành document.createElement
+                const source = document.createElement("source");
                 source.type = "video/mp4";
                 el.appendChild(source);
             }
-        } else { return; }
+        } 
+        // Nếu type không phải "image" hoặc "video" (ví dụ "Image", "VIDEO", null...) -> el sẽ bằng null
 
-        wrapper.appendChild(el);
-        container.appendChild(wrapper);
-        galleryObserver.observe(wrapper);
-    });
-    loaded += next.length;
+        if (el) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "media-item unloaded";
+            wrapper.dataset.index = loaded; // Giữ nguyên index gốc để khi click vào viewer vẫn mở đúng ảnh
+            wrapper._mediaData = m;
+            wrapper._isLoaded = false;
+
+            wrapper.appendChild(el);
+            container.appendChild(wrapper);
+            galleryObserver.observe(wrapper);
+            
+            itemsAdded++; // Chỉ cộng biến đếm khi thực sự add được DOM vào màn hình
+        } else {
+            // In cảnh báo ra Console (F12) để bạn biết file JSON đang bị sai ở dòng nào
+            console.warn("Bỏ qua media không hợp lệ tại index:", loaded, "| type:", m.type, "| src:", m.src);
+        }
+
+        // LUÔN tăng biến loaded để chuyển sang mục tiếp theo, tránh treo máy
+        loaded++; 
+    }
 }
-
 /* ================= INFINITE SCROLL ================= */
 const gallery = document.querySelector(".gallery");
 gallery.addEventListener("scroll", () => {
