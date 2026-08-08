@@ -1,3 +1,108 @@
+/* ===== NÚT CÀI ĐẶT HIỆU ỨNG ===== */
+#fx-settings-btn {
+    width: 45px;
+    height: 45px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 100000; /* Đảm bảo luôn nằm trên cùng */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    user-select: none;
+    opacity: 1; /* Ép luôn hiển thị với độ sáng 100% */
+}
+#fx-settings-btn:hover {
+    transform: rotate(90deg) scale(1.1);
+}
+
+#fx-settings-panel {
+    position: fixed;
+    top: 80px; /* Đổi từ bottom thành top (cách nút 60px) */
+    right: 20px;
+    width: 260px;
+    background: rgba(15, 12, 8, 0.92); /* Tăng độ đục nền cho dễ đọc chữ */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(210, 162, 77, 0.2);
+    border-radius: 16px;
+    padding: 16px;
+    z-index: 100000;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    transform: translateY(-10px); /* Đổi hiệu ứng trượt từ dưới thành trượt từ trên */
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+/* Khi bật panel, trượt xuống đúng vị trí */
+#fx-settings-panel:not(.fx-hidden) {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.fx-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    color: #f0e6d2;
+    font-weight: bold;
+    font-size: 14px;
+}
+#fx-close-btn {
+    background: none;
+    border: none;
+    color: #9a8e7a;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+#fx-close-btn:hover { color: #fff; }
+
+.fx-toggle-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #d1c7b7;
+    font-size: 13px;
+    margin-bottom: 12px;
+    cursor: pointer;
+}
+.fx-toggle-label:last-child { margin-bottom: 0; }
+
+/* CSS công tắc */
+.fx-switch {
+    position: relative;
+    width: 40px;
+    height: 22px;
+}
+.fx-switch input { opacity: 0; width: 0; height: 0; }
+.fx-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #4b3621;
+    transition: .3s;
+    border-radius: 22px;
+}
+.fx-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+.fx-switch input:checked + .fx-slider { background-color: #c9a24d; }
+.fx-switch input:checked + .fx-slider:before { transform: translateX(18px); }
+
 .contribute-section {
     width: 100%;
 }
@@ -442,9 +547,10 @@ p.style2{
     background-repeat: no-repeat;
     background-size: cover;
     height: auto;
-    width: 9rem;
-    padding: 6px;
-    margin: 6px;
+    width: 8.5rem;
+    padding: 3px;
+    margin: 3px;
+    font-size: 0.92rem;
     transition: transform 0.3s ease, background 0.3s, box-shadow 0.3s ease;
 }
 .navi-card:hover{

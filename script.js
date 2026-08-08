@@ -1,6 +1,10 @@
 (function(){
 'use strict';
 
+if (!window.fxSettings) {
+    window.fxSettings = { dust: true, rays: true };
+}
+
 /* ==================== CẤU HÌNH & TỐI ƯU MOBILE ==================== */
 var isMobile = window.matchMedia("(max-width: 768px)").matches;
 var DPR = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2); 
@@ -259,79 +263,87 @@ function manageCanvasRays(dtMs){
 }
 
 /* ==================== VẼ TỔNG HỢP 1 LỚP ==================== */
+
 function drawBackLayer(t){
     cxB.clearRect(0, 0, W, H);
-    for(var i = 0; i < dustB.length; i++){
-        var p = dustB[i]; steer(p, t);
-        var lf = dustRayLight(p, raysBCache);
-        var op = cl(p.op + Math.sin(t * 0.7 + p.ph) * 0.04, 0, 1);
+    if (window.fxSettings.dust) {
+        for(var i = 0; i < dustB.length; i++){
+            var p = dustB[i]; steer(p, t);
+            var lf = dustRayLight(p, raysBCache);
+            var op = cl(p.op + Math.sin(t * 0.7 + p.ph) * 0.04, 0, 1);
+            
+            if(lf > 0.05){
+                // Nhỏ lại bằng cách giảm hệ số nhân (từ 10 xuống 6)
+                var gs = p.sz * 6 * (1 + lf * 1.2); 
+                cxB.globalAlpha = op * lf * 0.75;
+                cxB.drawImage(dustGlowTx, p.x - gs/2, p.y - gs/2, gs, gs);
+                var cs = p.sz * 3 * (1 + lf * 0.5); 
+                cxB.globalAlpha = Math.min(1, op * (1.2 + lf * 4.5));
+                cxB.drawImage(dustCoreTx, p.x - cs, p.y - cs, cs*2, cs*2);
+            } else {
+                // Nhỏ lại bằng cách giảm hệ số nhân (từ 2 xuống 1.2)
+                var drawSz = p.sz * 1.2;
+                cxB.globalAlpha = op * 0.6;
+                cxB.drawImage(dustNormCoolTx, p.x - drawSz, p.y - drawSz, drawSz*2, drawSz*2);
+            }
+        }
         
-        if(lf > 0.05){
-            // Nhỏ lại bằng cách giảm hệ số nhân (từ 10 xuống 6)
-            var gs = p.sz * 6 * (1 + lf * 1.2); 
-            cxB.globalAlpha = op * lf * 0.75;
-            cxB.drawImage(dustGlowTx, p.x - gs/2, p.y - gs/2, gs, gs);
-            var cs = p.sz * 3 * (1 + lf * 0.5); 
-            cxB.globalAlpha = Math.min(1, op * (1.2 + lf * 4.5));
-            cxB.drawImage(dustCoreTx, p.x - cs, p.y - cs, cs*2, cs*2);
-        } else {
-            // Nhỏ lại bằng cách giảm hệ số nhân (từ 2 xuống 1.2)
-            var drawSz = p.sz * 1.2;
-            cxB.globalAlpha = op * 0.6;
-            cxB.drawImage(dustNormCoolTx, p.x - drawSz, p.y - drawSz, drawSz*2, drawSz*2);
+        for(var j = 0; j < spkB.length; j++){
+            var sp = spkB[j]; steer(sp, t);
+            var raw = Math.sin(t*sp.flSpd+sp.flPh); var flash = Math.pow(Math.max(0, raw), 4);
+            var op = sp.baseOp * flash;
+            if(op < 0.012) continue;
+            var ss = sp.sz * 6; // Nhỏ lại sparkle
+            cxB.globalAlpha = op;
+            cxB.drawImage(sparkleTx, sp.x - ss, sp.y - ss, ss*2, ss*2);
         }
     }
-    
-    for(var j = 0; j < spkB.length; j++){
-        var sp = spkB[j]; steer(sp, t);
-        var raw = Math.sin(t*sp.flSpd+sp.flPh); var flash = Math.pow(Math.max(0, raw), 4);
-        var op = sp.baseOp * flash;
-        if(op < 0.012) continue;
-        var ss = sp.sz * 6; // Nhỏ lại sparkle
-        cxB.globalAlpha = op;
-        cxB.drawImage(sparkleTx, sp.x - ss, sp.y - ss, ss*2, ss*2);
+    if (window.fxSettings.rays) {
+        for(var k = 0; k < raysB.length; k++) drCanvasRay(cxB, raysB[k], gTime);
     }
-    
-    for(var k = 0; k < raysB.length; k++) drCanvasRay(cxB, raysB[k], gTime);
     cxB.globalAlpha = 1;
 }
 
 function drawTopLayer(t){
     cxT.clearRect(0, 0, W, H);
-    for(var k = 0; k < raysT.length; k++) drCanvasRay(cxT, raysT[k], gTime);
-    
-    for(var i = 0; i < dustT.length; i++){
-        var p = dustT[i]; steer(p, t);
-        var lf1 = dustRayLight(p, raysBCache);
-        var lf2 = dustRayLight(p, raysTCache);
-        var lf = lf1 > lf2 ? lf1 : lf2;
+
+     if (window.fxSettings.rays) {
+        for(var k = 0; k < raysT.length; k++) drCanvasRay(cxT, raysT[k], gTime);
+    }
+
+    if (window.fxSettings.dust) {
+        for(var i = 0; i < dustT.length; i++){
+            var p = dustT[i]; steer(p, t);
+            var lf1 = dustRayLight(p, raysBCache);
+            var lf2 = dustRayLight(p, raysTCache);
+            var lf = lf1 > lf2 ? lf1 : lf2;
+            
+            var op = cl(p.op + Math.sin(t * 0.7 + p.ph) * 0.04, 0, 1);
+            
+            if(lf > 0.05){
+                var gs = p.sz * 6 * (1 + lf * 1.2);
+                cxT.globalAlpha = op * lf * 0.75;
+                cxT.drawImage(dustGlowTx, p.x - gs/2, p.y - gs/2, gs, gs);
+                var cs = p.sz * 3 * (1 + lf * 0.5);
+                cxT.globalAlpha = Math.min(1, op * (1.2 + lf * 4.5));
+                cxT.drawImage(dustCoreTx, p.x - cs, p.y - cs, cs*2, cs*2);
+            } else {
+                var drawSz = p.sz * 1.2;
+                cxT.globalAlpha = op * 0.6;
+                cxT.drawImage(dustNormWarmTx, p.x - drawSz, p.y - drawSz, drawSz*2, drawSz*2);
+            }
+        }
         
-        var op = cl(p.op + Math.sin(t * 0.7 + p.ph) * 0.04, 0, 1);
-        
-        if(lf > 0.05){
-            var gs = p.sz * 6 * (1 + lf * 1.2);
-            cxT.globalAlpha = op * lf * 0.75;
-            cxT.drawImage(dustGlowTx, p.x - gs/2, p.y - gs/2, gs, gs);
-            var cs = p.sz * 3 * (1 + lf * 0.5);
-            cxT.globalAlpha = Math.min(1, op * (1.2 + lf * 4.5));
-            cxT.drawImage(dustCoreTx, p.x - cs, p.y - cs, cs*2, cs*2);
-        } else {
-            var drawSz = p.sz * 1.2;
-            cxT.globalAlpha = op * 0.6;
-            cxT.drawImage(dustNormWarmTx, p.x - drawSz, p.y - drawSz, drawSz*2, drawSz*2);
+        for(var j = 0; j < spkT.length; j++){
+            var sp = spkT[j]; steer(sp, t);
+            var raw = Math.sin(t*sp.flSpd+sp.flPh); var flash = Math.pow(Math.max(0, raw), 4);
+            var op = sp.baseOp * flash;
+            if(op < 0.012) continue;
+            var ss = sp.sz * 6;
+            cxT.globalAlpha = op;
+            cxT.drawImage(sparkleTx, sp.x - ss, sp.y - ss, ss*2, ss*2);
         }
     }
-    
-    for(var j = 0; j < spkT.length; j++){
-        var sp = spkT[j]; steer(sp, t);
-        var raw = Math.sin(t*sp.flSpd+sp.flPh); var flash = Math.pow(Math.max(0, raw), 4);
-        var op = sp.baseOp * flash;
-        if(op < 0.012) continue;
-        var ss = sp.sz * 6;
-        cxT.globalAlpha = op;
-        cxT.drawImage(sparkleTx, sp.x - ss, sp.y - ss, ss*2, ss*2);
-    }
-    
     cxT.globalAlpha = 1;
 }
 
@@ -713,6 +725,7 @@ function renderBatch() {
         loaded++; 
     }
 }
+
 /* ================= INFINITE SCROLL ================= */
 const gallery = document.querySelector(".gallery");
 gallery.addEventListener("scroll", () => {

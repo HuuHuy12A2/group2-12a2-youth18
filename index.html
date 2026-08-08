@@ -35,6 +35,13 @@
     		font-size: 20px;
     		font-weight: bold;
 		}
+		form{
+			scroll-margin-top: 50px;
+    		margin-bottom: 20px;
+    		padding: 15px;
+    		border-radius: 10px;
+    		box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+		}
 	</style>
 </head>
 <body>
@@ -44,6 +51,7 @@
 	<canvas id="ray-b" class="ray-cv"></canvas>
 	<canvas id="ray-t" class="ray-cv"></canvas>
 	<canvas id="dust-t" class="dust-cv"></canvas>
+
 
 	<div>
 		<header id="top" class="header-bg">
@@ -86,7 +94,33 @@
 				<div class="navi-card">
 					<a class="navi" href="admin.html" target="_blank">Admin</a>
 				</div>
+
+				<!-- NÚT CÀI ĐẶT HIỆU ỨNG -->
+				<div id="fx-settings-btn" title="Cài đặt hiệu ứng">⚙️</div>
+
+				<div id="fx-settings-panel" class="fx-hidden">
+					<div class="fx-panel-header">
+						<span>Cài đặt hiệu ứng</span>
+						<button id="fx-close-btn">✖</button>
+					</div>
+					<label class="fx-toggle-label">
+						<span>Hạt bụi lơ lửng</span>
+						<div class="fx-switch">
+							<input type="checkbox" id="toggle-dust" checked>
+							<span class="fx-slider"></span>
+						</div>
+					</label>
+					<label class="fx-toggle-label">
+						<span>Tia nắng (Godrays)</span>
+						<div class="fx-switch">
+							<input type="checkbox" id="toggle-rays" checked>
+							<span class="fx-slider"></span>
+						</div>
+					</label>
+				</div>
+			
 			</nav>
+
 		</div>
 
 		<main class="container">
@@ -95,7 +129,7 @@
 			<aside class="sidebar">
 				<!-- sidebar-header -->
 				<div class="sidebar-header">
-					<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/introduce.jpg" alt="giới thiệu lớp">
+					<img src="general/introduce.jpg" alt="giới thiệu lớp">
 					<h2>12A2</h2>
 				</div>
 				<!-- main-sidebar -->
@@ -211,16 +245,16 @@
 					<p align="center">Khoảnh Khắc</p>
 					<p class="content">
 						10A2<br>
-						<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images%20assets/anh-gvcn-10a2-tapthe-20-10.jpg" alt="20/10 lớp 10a2">
+						<img src="images\anh-gvcn-10a2-tapthe-20-10.jpg" alt="20/10 lớp 10a2">
 						20/10/2023<br><br>
 						11A2<br>
-						<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images%20assets/bongda-11a2-tapthe-anhh.jpg" alt="20/10 lớp 11a2">
+						<img src="images\bongda-11a2-tapthe-anhh.jpg" alt="20/10 lớp 11a2">
 						20/10/2024<br>
-						<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images%20assets/anh-11a2-hoiitrai-tapthe-.jpg" alt="Hội trại 11a2">
+						<img src="images/anh-11a2-hoiitrai-tapthe-.jpg" alt="Hội trại 11a2">
 						26/3/2025<br>
-						<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images%20assets/anh-tapthe-bongda-12a2.jpg" alt="Bóng Đá 11a2"><br>
+						<img src="images\anh-tapthe-bongda-12a2.jpg" alt="Bóng Đá 11a2"><br>
 						12A2<br>
-						<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/images%20assets/anh-12a2-20-10-taptheee.jpg" alt="cuộc thi 20/10 lớp 12a2">
+						<img src="images/anh-12a2-20-10-taptheee.jpg" alt="cuộc thi 20/10 lớp 12a2">
 						20/10/2025<br>
 					</p>
 					<a href="#" class="toggle">xem thêm</a>
@@ -414,6 +448,7 @@
 
 <script src="tag-engine.js"></script>
 <script src="script.js"></script>
+<script src="setting.js"></script>
 </body>
 
 </html>
