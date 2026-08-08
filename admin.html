@@ -21,6 +21,28 @@
             </div>
         </section>
 
+        <!-- THÔNG BÁO TRƯỢT XUỐNG -->
+        <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+        <!-- MODAL XÁC NHẬN TUỲ CHỈNH -->
+        <div id="confirmModal" class="modal-overlay hidden">
+            <div class="modal-box">
+                <p id="confirmMessage" style="margin-bottom: 20px; font-size: 16px; color: #e5e7eb;"></p>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button id="confirmCancel" class="modal-btn cancel-btn">Huỷ</button>
+                    <button id="confirmOk" class="modal-btn ok-btn">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- THANH TIẾN TRÌNH -->
+        <div id="progressWrapper" class="hidden">
+            <div id="progressText">Đang duyệt: 0/0</div>
+            <div class="progress-bar-bg">
+                <div id="progressBarFill" class="progress-bar-fill"></div>
+            </div>
+        </div>
+
         <section id="adminSection" class="admin-panel hidden">
             <header class="admin-header">
                 <div>
@@ -42,7 +64,7 @@
 
                 <section class="review-panel">
                     <div id="emptyReview" class="empty-review">
-                        <img src='https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/sleepy_cat.png' height="100" width="100">
+                        <img src='general/sleepy_cat.png' height="100" width="100">
                         <h2>Chưa chọn bài gửi</h2>
                         <p>Chọn một bài trong danh sách để xem trước.</p>
                     </div>
@@ -101,6 +123,7 @@
                             </div>
                         </div>
                     </div>
+                    <button id="approveAllButton">Duyệt tất cả</button>
                 </section>
             </div>
         </section>

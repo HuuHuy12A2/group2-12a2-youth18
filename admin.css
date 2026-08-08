@@ -334,3 +334,129 @@ button {
         padding: 16px;
     }
 }
+/* ===== TOAST NOTIFICATION ===== */
+.toast {
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transform: translateX(120%);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.4s ease;
+    opacity: 0;
+    max-width: 350px;
+    word-wrap: break-word;
+}
+.toast.show { 
+    transform: translateX(0); 
+    opacity: 1; 
+}
+.toast.success { 
+    background-color: #16a34a; 
+}
+.toast.error { 
+    background-color: #dc2626; 
+}
+.toast.info { 
+    background-color: #2563eb; 
+}
+
+/* ===== MODAL XÁC NHẬN ===== */
+.modal-overlay { 
+    position: fixed; 
+    inset: 0; 
+    background: rgba(0,0,0,0.6); 
+    backdrop-filter: blur(4px); 
+    z-index: 10000; display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+.modal-overlay.hidden { 
+    display: none; 
+}
+.modal-box { 
+    background: #1f2937; 
+    border: 1px solid #374151; 
+    padding: 24px; 
+    border-radius: 12px; 
+    min-width: 300px; 
+    max-width: 90%; 
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3); 
+}
+.modal-btn { 
+    padding: 8px 16px; 
+    border: none; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    transition: 0.2s; 
+}
+.cancel-btn {
+    background: #4b5563; 
+    color: white; 
+}
+.cancel-btn:hover { 
+    background: #6b7280; 
+}
+.ok-btn { 
+    background: #16a34a; 
+    color: white; 
+}
+.ok-btn:hover { 
+    background: #15803d; 
+}
+
+/* ===== PROGRESS BAR ===== */
+#progressWrapper { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    background: #111827; 
+    padding: 15px 20px; 
+    z-index: 9998; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
+}
+#progressWrapper.hidden { 
+    display: none; 
+}
+#progressText { 
+    color: #9ca3af; 
+    font-size: 14px; 
+    margin-bottom: 8px; 
+}
+.progress-bar-bg { 
+    width: 100%; 
+    height: 8px; 
+    background: #374151; 
+    border-radius: 4px; 
+    overflow: hidden; 
+}
+.progress-bar-fill { 
+    height: 100%; 
+    background: #3b82f6; 
+    width: 0%; 
+    transition: width 0.3s ease; 
+    border-radius: 4px; 
+}
+
+/* Nút Duyệt tất cả (bạn có thể tùy chỉnh lại cho hợp với giao diện) */
+#approveAllButton { 
+    margin-top: 10px; 
+    width: 100%; 
+    padding: 10px; 
+    background: #2563eb; 
+    color: white; 
+    border: none; 
+    border-radius: 6px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: 0.2s; 
+}
+#approveAllButton:hover:not(:disabled) { 
+    background: #1d4ed8; 
+}
+#approveAllButton:disabled { 
+    background: #4b5563; 
+    cursor: not-allowed; 
+}
