@@ -17,7 +17,6 @@
 #fx-settings-panel {
     position: fixed;
     top: 65px;
-    left: 15px;        /* Căn lề trái */
     right: 15px;       /* Căn lề phải -> Chống lệch mọi màn hình */
     width: auto;       /* Để width tự động co giãn */
     max-width: 320px;  /* Giới hạn chiều rộng tối đa trên máy tính */
