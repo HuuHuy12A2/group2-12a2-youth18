@@ -15,7 +15,6 @@
 
 /* ===== BẢNG CÀI ĐẶT (FIX LỆCH) ===== */
 #fx-settings-panel {
-    position: fixed;
     top: 65px;
     right: 15px;       /* Căn lề phải -> Chống lệch mọi màn hình */
     width: auto;       /* Để width tự động co giãn */
