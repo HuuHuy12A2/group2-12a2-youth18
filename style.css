@@ -1,52 +1,39 @@
-/* ===== NÚT CÀI ĐẶT HIỆU ỨNG ===== */
+/* ===== NÚT BẤM ===== */
 #fx-settings-btn {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 40px; /* Giảm size nút một chút trên mobile cho vừa vặn */
+    width: 40px;
     height: 40px;
-    background: rgba(20, 15, 10, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(210, 162, 77, 0.3);
-    border-radius: 50%;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 20px;
     cursor: pointer;
     z-index: 100000; 
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    transition: transform 0.3s ease;
     user-select: none;
-    opacity: 1; 
 }
-#fx-settings-btn:hover {
-    transform: rotate(90deg) scale(1.1);
-    box-shadow: 0 0 20px rgba(210, 162, 77, 0.5);
-}
+#fx-settings-btn:hover { transform: rotate(90deg) scale(1.1); }
 
+/* ===== BẢNG CÀI ĐẶT (FIX LỆCH) ===== */
 #fx-settings-panel {
     position: fixed;
-    top: 70px; /* Hạ thấp xuống một chút để không dính sát nút */
-    right: 10px; /* Thụt lề vào 10px để không bị dính sát mép màn hình điện thoại */
-    width: 260px; /* Kích thước mặc định cho Máy tính */
-    max-width: calc(100vw - 20px); /* TỐI ƯU MOBILE: Ép bảng không bao giờ bị tràn ra ngoài màn hình */
-    background: rgba(15, 12, 8, 0.95); /* Tăng độ đục lên 0.95 để chữ không bị lẫn vào nền ảnh */
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    top: 65px;
+    left: 15px;        /* Căn lề trái */
+    right: 15px;       /* Căn lề phải -> Chống lệch mọi màn hình */
+    width: auto;       /* Để width tự động co giãn */
+    max-width: 320px;  /* Giới hạn chiều rộng tối đa trên máy tính */
+    background: rgba(10, 8, 5, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(210, 162, 77, 0.2);
-    border-radius: 12px; /* Bo góc nhỏ lại một chút cho đỡ chiếm chỗ */
+    border-radius: 12px;
     padding: 14px;
     z-index: 100000;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.8);
     transform: translateY(-10px); 
     opacity: 0;
     pointer-events: none;
-    transition: all 0.25s ease-out; /* Làm animation nhanh hơn một chút cho cảm giác phản hồi lẹ làng trên mobile */
+    transition: all 0.25s ease-out;
 }
-
-/* Khi bật panel */
 #fx-settings-panel:not(.fx-hidden) {
     transform: translateY(0);
     opacity: 1;
@@ -58,64 +45,110 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
-    padding-bottom: 8px;
+    padding-bottom: 10px;
     border-bottom: 1px solid rgba(255,255,255,0.1);
     color: #f0e6d2;
     font-weight: bold;
-    font-size: 13px; /* Giảm cỡ chữ header chút xíu */
+    font-size: 13px;
 }
 #fx-close-btn {
-    background: none;
-    border: none;
-    color: #9a8e7a;
-    font-size: 16px;
-    cursor: pointer;
-    transition: color 0.2s;
-    padding: 0;
+    background: none; 
+    border: none; 
+    color: #9a8e7a; 
+    font-size: 16px; 
+    cursor: pointer; 
+    padding: 0; 
     line-height: 1;
 }
 #fx-close-btn:hover { color: #fff; }
 
+/* Toggle Switch */
 .fx-toggle-label {
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: #d1c7b7;
-    font-size: 12px; /* Giảm cỡ chữ nội dung cho vừa màn hình nhỏ */
+    font-size: 12px;
     margin-bottom: 10px;
     cursor: pointer;
 }
-.fx-toggle-label:last-child { margin-bottom: 0; }
-
-/* CSS công tắc */
-.fx-switch {
-    position: relative;
-    width: 36px; /* Giảm size công tắc cho mobile */
-    height: 20px;
-    flex-shrink: 0; /* Ngăn công tắc bị bóp méo */
-}
-.fx-switch input { opacity: 0; width: 0; height: 0; }
-.fx-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #4b3621;
-    transition: .3s;
+.fx-switch { 
+    position: relative; 
+    width: 36px; 
+    height: 20px; 
+    flex-shrink: 0; }
+.fx-switch input { 
+    opacity: 0; 
+    width: 0; 
+    height: 0; }
+.fx-slider-toggle {
+    position: absolute; 
+    cursor: pointer; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0;
+    background-color: #4b3621; 
+    transition: .3s; 
     border-radius: 20px;
 }
-.fx-slider:before {
-    position: absolute;
-    content: "";
-    height: 14px; /* Giảm size quả cầu */
-    width: 14px;
-    left: 3px;
+.fx-slider-toggle:before {
+    position: absolute; 
+    content: ""; 
+    height: 14px; 
+    width: 14px; 
+    left: 3px; 
     bottom: 3px;
-    background-color: white;
-    transition: .3s;
+    background-color: white; 
+    transition: .3s; 
     border-radius: 50%;
 }
-.fx-switch input:checked + .fx-slider { background-color: #c9a24d; }
-.fx-switch input:checked + .fx-slider:before { transform: translateX(16px); }
+.fx-switch input:checked + .fx-slider-toggle { background-color: #c9a24d; }
+.fx-switch input:checked + .fx-slider-toggle:before { transform: translateX(16px); }
+
+/* Thanh trượt chỉnh lượng bụi */
+.fx-slider-container {
+    margin-top: 5px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+.fx-slider-header {
+    display: flex;
+    justify-content: space-between;
+    color: #d1c7b7;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+.fx-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #3d2e1e;
+    outline: none;
+    cursor: pointer;
+}
+.fx-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #c9a24d;
+    cursor: pointer;
+    box-shadow: 0 0 6px rgba(201, 162, 77, 0.5);
+    transition: transform 0.1s;
+}
+.fx-range::-webkit-slider-thumb:active { transform: scale(1.2); }
+.fx-range::-moz-range-thumb {
+    width: 18px; 
+    height: 18px; 
+    border-radius: 50%; 
+    background: #c9a24d; 
+    cursor: pointer; 
+    border: none;
+}
 
 .contribute-section {
     width: 100%;

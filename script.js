@@ -2,7 +2,11 @@
 'use strict';
 
 if (!window.fxSettings) {
-    window.fxSettings = { dust: true, rays: true };
+    window.fxSettings = { 
+        dust: true, 
+        rays: true,
+        dustAmount: 100 // THÊM DÒNG NÀY (Mặc định 100%)
+    };
 }
 
 /* ==================== CẤU HÌNH & TỐI ƯU MOBILE ==================== */
@@ -267,13 +271,16 @@ function manageCanvasRays(dtMs){
 function drawBackLayer(t){
     cxB.clearRect(0, 0, W, H);
     if (window.fxSettings.dust) {
-        for(var i = 0; i < dustB.length; i++){
+        // TÍNH SỐ LƯỢNG HẠT DỰA TRÊN THANH TRƯỢT
+        var dustBLimit = Math.floor(dustB.length * (window.fxSettings.dustAmount / 100));
+        var spkBLimit = Math.floor(spkB.length * (window.fxSettings.dustAmount / 100));
+
+        for(var i = 0; i < dustBLimit; i++){
             var p = dustB[i]; steer(p, t);
             var lf = dustRayLight(p, raysBCache);
             var op = cl(p.op + Math.sin(t * 0.7 + p.ph) * 0.04, 0, 1);
             
             if(lf > 0.05){
-                // Nhỏ lại bằng cách giảm hệ số nhân (từ 10 xuống 6)
                 var gs = p.sz * 6 * (1 + lf * 1.2); 
                 cxB.globalAlpha = op * lf * 0.75;
                 cxB.drawImage(dustGlowTx, p.x - gs/2, p.y - gs/2, gs, gs);
@@ -281,19 +288,18 @@ function drawBackLayer(t){
                 cxB.globalAlpha = Math.min(1, op * (1.2 + lf * 4.5));
                 cxB.drawImage(dustCoreTx, p.x - cs, p.y - cs, cs*2, cs*2);
             } else {
-                // Nhỏ lại bằng cách giảm hệ số nhân (từ 2 xuống 1.2)
                 var drawSz = p.sz * 1.2;
                 cxB.globalAlpha = op * 0.6;
                 cxB.drawImage(dustNormCoolTx, p.x - drawSz, p.y - drawSz, drawSz*2, drawSz*2);
             }
         }
         
-        for(var j = 0; j < spkB.length; j++){
+        for(var j = 0; j < spkBLimit; j++){
             var sp = spkB[j]; steer(sp, t);
             var raw = Math.sin(t*sp.flSpd+sp.flPh); var flash = Math.pow(Math.max(0, raw), 4);
             var op = sp.baseOp * flash;
             if(op < 0.012) continue;
-            var ss = sp.sz * 6; // Nhỏ lại sparkle
+            var ss = sp.sz * 6; 
             cxB.globalAlpha = op;
             cxB.drawImage(sparkleTx, sp.x - ss, sp.y - ss, ss*2, ss*2);
         }
@@ -312,7 +318,11 @@ function drawTopLayer(t){
     }
 
     if (window.fxSettings.dust) {
-        for(var i = 0; i < dustT.length; i++){
+        // TÍNH SỐ LƯỢNG HẠT DỰA TRÊN THANH TRƯỢT
+        var dustTLimit = Math.floor(dustT.length * (window.fxSettings.dustAmount / 100));
+        var spkTLimit = Math.floor(spkT.length * (window.fxSettings.dustAmount / 100));
+
+        for(var i = 0; i < dustTLimit; i++){
             var p = dustT[i]; steer(p, t);
             var lf1 = dustRayLight(p, raysBCache);
             var lf2 = dustRayLight(p, raysTCache);
@@ -334,7 +344,7 @@ function drawTopLayer(t){
             }
         }
         
-        for(var j = 0; j < spkT.length; j++){
+        for(var j = 0; j < spkTLimit; j++){
             var sp = spkT[j]; steer(sp, t);
             var raw = Math.sin(t*sp.flSpd+sp.flPh); var flash = Math.pow(Math.max(0, raw), 4);
             var op = sp.baseOp * flash;

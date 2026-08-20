@@ -33,4 +33,16 @@ document.addEventListener("DOMContentLoaded", function() {
     toggleRays.addEventListener('change', (e) => {
         window.fxSettings.rays = e.target.checked;
     });
+
+        // Lắng nghe thanh trượt chỉnh số lượng bụi
+    const dustAmountSlider = document.getElementById('dust-amount');
+    const dustValDisplay = document.getElementById('dust-val');
+
+    if (dustAmountSlider) {
+        dustAmountSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            dustValDisplay.textContent = val + '%';
+            window.fxSettings.dustAmount = parseInt(val);
+        });
+    }
 });
