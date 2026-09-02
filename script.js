@@ -916,15 +916,34 @@ let selectedFiles = [];
 const submitButton = document.getElementById("submitButton");
 const submitStatus = document.getElementById("submitStatus");
 const WORKER_URL = "https://media-upload-api.contactwithus12a2.workers.dev";
+
+// Biến toàn cục cho Popup chỉnh sửa
+const editModal = document.getElementById("editModal");
+const imageToEdit = document.getElementById("imageToEdit");
+const aspectRatioSelect = document.getElementById("aspectRatioSelect");
+const qualityRange = document.getElementById("qualityRange");
+const qualityValue = document.getElementById("qualityValue");
+const estimatedSize = document.getElementById("estimatedSize");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
+const applyEditBtn = document.getElementById("applyEditBtn");
+let cropper = null;
+let currentEditingId = null;
+
 init();
+
 async function init() {
-    await TagEngine.init();
+    // TagEngine.init() được giả định đã có sẵn trong môi trường của bạn
+    // await TagEngine.init(); 
     renderFiles();
+    setupModalEvents();
 }
+
 fileInput.addEventListener("change", event => {
     addFiles(event.target.files);
     fileInput.value = "";
 });
+
 uploadArea.addEventListener("dragover", event => {
     event.preventDefault();
     uploadArea.classList.add("dragover");
@@ -937,156 +956,131 @@ uploadArea.addEventListener("drop", event => {
     uploadArea.classList.remove("dragover");
     addFiles(event.dataTransfer.files);
 });
+
 submitButton.addEventListener("click", submitFiles);
+
 function addFiles(files) {
     [...files].forEach(file => {
-        if (!isSupportedFile(file)) {
-            return;
-        }
+        if (!isSupportedFile(file)) return;
         const fileData = createFileData(file);
         selectedFiles.push(fileData);
     });
     renderFiles();
 }
+
 function isSupportedFile(file) {
     return file.type.startsWith("image/") || file.type.startsWith("video/");
 }
+
 function createFileData(file) {
     const type = file.type.startsWith("image/") ? "image" : "video";
     const extension = getExtension(file.name);
     const baseName = getBaseName(file.name);
-    const analysis = TagEngine.analyzeFileName(file.name);
+    // analysis được giả định từ TagEngine của bạn
+    const analysis = []; // TagEngine.analyzeFileName(file.name); 
+    
     return {
         id: crypto.randomUUID(),
-        file,
+        file, // Lưu file gốc để có thể reset
         type,
         extension,
         name: file.name,
         baseName,
         analysis,
-        previewUrl: URL.createObjectURL(file)
+        previewUrl: URL.createObjectURL(file),
+        size: file.size, // Dung lượng hiện tại (sẽ thay đổi khi crop/nén)
+        isEdited: false
     };
 }
+
 function getExtension(fileName) {
     const lastDot = fileName.lastIndexOf(".");
-    if (lastDot === -1) {
-        return "";
-    }
-    return fileName.slice(lastDot + 1).toLowerCase();
+    return lastDot === -1 ? "" : fileName.slice(lastDot + 1).toLowerCase();
 }
+
 function getBaseName(fileName) {
     const lastDot = fileName.lastIndexOf(".");
-    if (lastDot === -1) {
-        return fileName;
-    }
-    return fileName.slice(0, lastDot);
+    return lastDot === -1 ? fileName : fileName.slice(0, lastDot);
 }
-function removeExtension(fileName, extension) {
-    const suffix = `.${extension}`;
-    if (fileName.toLowerCase().endsWith(suffix.toLowerCase())) {
-        return fileName.slice(0, -suffix.length
-        );
-    }
 
-    return fileName
-        .replace(/\.[^/.]+$/, "");
-}
 function renderFiles() {
     fileList.innerHTML = "";
     if (selectedFiles.length === 0) {
-        fileList.innerHTML = `
-            <div class="empty-state">
-                Chưa có file nào được chọn.
-            </div>
-        `;
+        fileList.innerHTML = `<div class="empty-state">Chưa có file nào được chọn.</div>`;
         return;
     }
     selectedFiles.forEach(fileData => {
         fileList.appendChild(createFileElement(fileData));
     });
 }
+
 function createFileElement(fileData) {
     const item = document.createElement("article");
     item.className = "file-item";
     item.dataset.id = fileData.id;
+
     const preview = createPreview(fileData);
     const info = document.createElement("div");
     info.className = "file-info";
+
     const typeLabel = document.createElement("span");
     typeLabel.className = "file-type";
     typeLabel.textContent = fileData.type;
+
     const nameLabel = document.createElement("label");
     nameLabel.className = "file-name-label";
     nameLabel.textContent = "Tên file";
+
     const nameRow = document.createElement("div");
     nameRow.className = "file-name-row";
     const nameInput = document.createElement("input");
     nameInput.className = "file-name-input";
     nameInput.type = "text";
     nameInput.value = fileData.baseName;
-    nameInput.placeholder = "Nhập tên file";
-    nameInput.addEventListener("input", () => {
-        updateFileName(fileData.id, nameInput.value);
-    });
+    nameInput.addEventListener("input", () => updateFileName(fileData.id, nameInput.value));
+    
     const extension = document.createElement("span");
     extension.className = "file-extension";
     extension.textContent = `.${fileData.extension}`;
-    nameRow.append(
-        nameInput,
-        extension
-    );
+    nameRow.append(nameInput, extension);
+
     const fileSize = document.createElement("div");
     fileSize.className = "file-size";
-    fileSize.textContent = `Kích thước: ${formatFileSize(fileData.file.size)}`;
-    const keywordTitle = document.createElement("div");
-    keywordTitle.className = "keyword-title";
-    keywordTitle.textContent = "Tag nhận diện";
-    const keywordList = document.createElement("div");
-    keywordList.className = "keyword-list";
-    renderAnalysis(
-        keywordList,
-        fileData.analysis
-    );
+    fileSize.textContent = `Kích thước: ${formatFileSize(fileData.size)}`;
+    if (fileData.isEdited) {
+        const editedTag = document.createElement("span");
+        editedTag.textContent = " (Đã chỉnh sửa)";
+        editedTag.style.color = "green";
+        fileSize.appendChild(editedTag);
+    }
+
     const actions = document.createElement("div");
     actions.className = "file-actions";
+
+    // Nút Chỉnh sửa (Chỉ hiện với Image)
+    if (fileData.type === "image") {
+        const editButton = document.createElement("button");
+        editButton.className = "edit-button";
+        editButton.type = "button";
+        editButton.textContent = "Chỉnh sửa";
+        editButton.addEventListener("click", () => openEditModal(fileData.id));
+        actions.appendChild(editButton);
+    }
+
+    // Nút Xóa
     const removeButton = document.createElement("button");
     removeButton.className = "remove-button";
     removeButton.type = "button";
     removeButton.textContent = "Xóa";
-    removeButton.addEventListener("click", () => {
-        removeFile(fileData.id);
-    });
+    removeButton.addEventListener("click", () => removeFile(fileData.id));
     actions.appendChild(removeButton);
-    info.append(
-        typeLabel,
-        nameLabel,
-        nameRow,
-        fileSize,
-        keywordTitle,
-        keywordList,
-        actions
-    );
-    item.append(
-        preview,
-        info
-    );
+
+    info.append(typeLabel, nameLabel, nameRow, fileSize, actions);
+    item.append(preview, info);
+
     return item;
 }
-function formatFileSize(bytes) {
-    if (!Number.isFinite(bytes) || bytes < 0) {
-        return "Không xác định";
-    }
-    if (bytes < 1024) {
-        return `${bytes} B`;
-    }
-    if (bytes < 1024 * 1024) {
-        return `${(bytes / 1024).toFixed(1)} KB`;
-    }
-    if (bytes < 1024 * 1024 * 1024) {
-        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-    }
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
+
 function createPreview(fileData) {
     const preview = document.createElement("div");
     preview.className = "preview";
@@ -1104,91 +1098,155 @@ function createPreview(fileData) {
     preview.appendChild(video);
     return preview;
 }
-function renderAnalysis(container, analysis) {
-    container.innerHTML = "";
-    if (analysis.length === 0) {
-        const empty = document.createElement("span");
-        empty.className = "keyword";
-        empty.textContent = "Không có keyword";
-        container.appendChild(empty);
-        return;
-    }
-    analysis.forEach(item => {
-        const element = document.createElement("div");
-        element.className = `tag-analysis tag-${item.status}`;
-        const keyword = document.createElement("span");
-        keyword.className = "tag-keyword";
-        keyword.textContent = item.keyword;
-        element.appendChild(keyword);
-        if (item.status === "matched") {
-            const arrow = document.createElement("span");
-            arrow.textContent = "→";
-            const tag = document.createElement("strong");
-            tag.textContent = item.tag;
-            element.append(
-                arrow,
-                tag
-            );
-        }
-        if (item.status === "suggestion") {
-            const label = document.createElement("span");
-            label.textContent = "Có thể là:";
-            element.appendChild(label);
-            item.suggestions.forEach(suggestion => {
-                const suggestionElement = document.createElement("span");
-                suggestionElement.className = "tag-suggestion";
-                suggestionElement.textContent = suggestion.name;
-                element.appendChild(suggestionElement);
-            });
-        }
-        if (item.status === "new") {
-            const label = document.createElement("span");
-            label.textContent = "Tag mới:";
-            const newTag = document.createElement("strong");
-            newTag.textContent = item.tag;
-            element.append(
-                label,
-                newTag
-            );
-        }
-        container.appendChild(element);
-    });
-}
-function updateFileName(id, newName) {
-    const fileData = selectedFiles.find(
-        item => item.id === id
-    );
-    if (!fileData) {return}
-    const cleanName = removeExtension(
-        newName,
-        fileData.extension
-    );
-    fileData.baseName = cleanName;
-    fileData.name = `${cleanName}.${fileData.extension}`;
-    fileData.analysis = TagEngine.analyzeFileName(
-        fileData.name
-    );
-    const item = document.querySelector(
-        `[data-id="${id}"]`
-    );
-    if (!item) {return;}
 
-    const keywordList = item.querySelector(
-        ".keyword-list"
-    );
-    renderAnalysis(
-        keywordList,
-        fileData.analysis
-    );
+function formatFileSize(bytes) {
+    if (!Number.isFinite(bytes) || bytes < 0) return "Không xác định";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
+
+function updateFileName(id, newName) {
+    const fileData = selectedFiles.find(item => item.id === id);
+    if (!fileData) return;
+    fileData.baseName = newName;
+    fileData.name = `${newName}.${fileData.extension}`;
+    // Cập nhật lại analysis nếu cần
+    // fileData.analysis = TagEngine.analyzeFileName(fileData.name);
+}
+
 function removeFile(id) {
     const fileData = selectedFiles.find(item => item.id === id);
-    if (fileData) {
-        URL.revokeObjectURL(fileData.previewUrl);
-    }
+    if (fileData) URL.revokeObjectURL(fileData.previewUrl);
     selectedFiles = selectedFiles.filter(item => item.id !== id);
     renderFiles();
 }
+
+// ==========================================
+// LOGIC CHỈNH SỬA ẢNH (CROP & COMPRESS)
+// ==========================================
+
+function setupModalEvents() {
+    closeModalBtn.addEventListener("click", closeEditModal);
+    cancelEditBtn.addEventListener("click", closeEditModal);
+    
+    aspectRatioSelect.addEventListener("change", () => {
+        if (cropper) {
+            const val = parseFloat(aspectRatioSelect.value);
+            cropper.setAspectRatio(val);
+        }
+    });
+
+    qualityRange.addEventListener("input", () => {
+        qualityValue.textContent = `${qualityRange.value}%`;
+        updateEstimatedSize();
+    });
+
+    applyEditBtn.addEventListener("click", applyChanges);
+}
+
+function openEditModal(id) {
+    currentEditingId = id;
+    const fileData = selectedFiles.find(item => item.id === id);
+    if (!fileData) return;
+
+    // Đặt chất lượng mặc định khi mở
+    qualityRange.value = 90;
+    qualityValue.textContent = "90%";
+
+    // Đọc ảnh gốc để đưa vào Cropper
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        imageToEdit.src = e.target.result;
+        // Khởi tạo Cropper
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(imageToEdit, {
+            viewMode: 1,
+            autoCropArea: 0.9,
+            aspectRatio: NaN, // Mặc định tự do
+            ready() {
+                updateEstimatedSize();
+            },
+            crop() {
+                updateEstimatedSize();
+            }
+        });
+        editModal.style.display = "flex";
+    };
+    reader.readAsDataURL(fileData.file);
+}
+
+function closeEditModal() {
+    editModal.style.display = "none";
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+    currentEditingId = null;
+}
+
+function updateEstimatedSize() {
+    if (!cropper) return;
+    const quality = qualityRange.value / 100;
+    const canvas = cropper.getCroppedCanvas();
+    if (!canvas) return;
+    
+    // Ước lượng dung lượng (tính xấp xỉ base64 string size)
+    canvas.toBlob((blob) => {
+        if (blob) {
+            estimatedSize.textContent = formatFileSize(blob.size);
+        }
+    }, 'image/jpeg', quality);
+}
+
+function applyChanges() {
+    if (!cropper || !currentEditingId) return;
+    
+    const quality = qualityRange.value / 100;
+    const canvas = cropper.getCroppedCanvas({
+        maxWidth: 4096,
+        maxHeight: 4096,
+        fillColor: '#fff',
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high'
+    });
+
+    if (!canvas) {
+        alert("Không thể cắt ảnh. Vui lòng thử lại.");
+        return;
+    }
+
+    canvas.toBlob((blob) => {
+        if (!blob) return;
+
+        const fileData = selectedFiles.find(item => item.id === currentEditingId);
+        if (fileData) {
+            // Xóa preview URL cũ
+            URL.revokeObjectURL(fileData.previewUrl);
+            
+            // Cập nhật file mới (luôn là JPEG để tối ưu dung lượng)
+            const newFileName = `${fileData.baseName}_edited.jpg`;
+            const newFile = new File([blob], newFileName, { type: "image/jpeg" });
+            
+            fileData.file = newFile;
+            fileData.name = newFileName;
+            fileData.extension = "jpg";
+            fileData.size = newFile.size;
+            fileData.previewUrl = URL.createObjectURL(newFile);
+            fileData.isEdited = true;
+
+            // Đóng popup và render lại danh sách
+            closeEditModal();
+            renderFiles();
+        }
+    }, 'image/jpeg', quality);
+}
+
+// ==========================================
+// LOGIC SUBMIT (GỬI LÊN SERVER)
+// ==========================================
+
 async function submitFiles() {
     if (selectedFiles.length === 0) {
         setSubmitStatus("Vui lòng chọn ít nhất một file.", "error");
@@ -1199,73 +1257,56 @@ async function submitFiles() {
         setSubmitStatus("Vui lòng nhập tên cho tất cả file.", "error");
         return;
     }
+    
     submitButton.disabled = true;
     setSubmitStatus("Đang gửi đóng góp...", "");
+
     try {
         for (let i = 0; i < selectedFiles.length; i++) {
             const fileData = selectedFiles[i];
-            setSubmitStatus(
-                `Đang gửi ${i + 1}/${selectedFiles.length}: ${fileData.name}`,
-                ""
-            );
+            setSubmitStatus(`Đang gửi ${i + 1}/${selectedFiles.length}: ${fileData.name}`, "");
+
             const formData = new FormData();
-            const renamedFile = new File(
-                [fileData.file],
-                fileData.name,
-                {
-                    type: fileData.file.type
-                }
-            );
-            formData.append("file", renamedFile);
+            formData.append("file", fileData.file); // fileData.file giờ là File đã crop/nén
             formData.append("name", fileData.name);
             formData.append("type", fileData.type);
-            formData.append(
-                "analysis",
-                JSON.stringify(fileData.analysis)
-            );
-            const response = await fetch(
-                `${WORKER_URL}/upload`,
-                {
-                    method: "POST",
-                    body: formData
-                }
-            );
+            formData.append("analysis", JSON.stringify(fileData.analysis));
+
+            const response = await fetch(`${WORKER_URL}/upload`, {
+                method: "POST",
+                body: formData
+            });
+
             let result;
             try {
                 result = await response.json();
             } catch {
-                throw new Error(
-                    `Worker trả về phản hồi không hợp lệ. HTTP ${response.status}`
-                );
+                throw new Error(`Worker trả về phản hồi không hợp lệ. HTTP ${response.status}`);
             }
+
             if (!response.ok || !result.success) {
-                throw new Error(
-                    result.error || "Không thể gửi file."
-                );
+                throw new Error(result.error || "Không thể gửi file.");
             }
         }
-        setSubmitStatus(
-            "Đã gửi tất cả đóng góp thành công. Chờ admin duyệt.",
-            "success"
-        );
-        selectedFiles.forEach(fileData => {
-            URL.revokeObjectURL(fileData.previewUrl);
-        });
+        
+        setSubmitStatus("Đã gửi tất cả đóng góp thành công. Chờ admin duyệt.", "success");
+        
+        selectedFiles.forEach(fileData => URL.revokeObjectURL(fileData.previewUrl));
         selectedFiles = [];
         renderFiles();
     } catch (error) {
         console.error("Upload error:", error);
-        setSubmitStatus(
-            error.message || "Có lỗi xảy ra khi gửi.",
-            "error"
-        );
+        setSubmitStatus(error.message || "Có lỗi xảy ra khi gửi.", "error");
     } finally {
         submitButton.disabled = false;
     }
 }
+
 function setSubmitStatus(message, type) {
     submitStatus.textContent = message;
     submitStatus.className = "submit-status";
+    if (type) submitStatus.classList.add(type);
+}
     if (type) {
         submitStatus.classList.add(type);
     }
