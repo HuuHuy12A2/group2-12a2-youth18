@@ -1306,7 +1306,6 @@ function setSubmitStatus(message, type) {
     submitStatus.textContent = message;
     submitStatus.className = "submit-status";
     if (type) submitStatus.classList.add(type);
-}
     if (type) {
         submitStatus.classList.add(type);
     }
