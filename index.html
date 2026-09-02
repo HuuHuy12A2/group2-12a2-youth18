@@ -5,6 +5,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Thanh xuân tuổi 18</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 	<style>
 		html{
     		scroll-behavior: smooth;
@@ -367,6 +369,45 @@
 			    <p class="submit-status" id="submitStatus"></p>
 			</div>
         </section>
+
+		<!-- Popup chỉnh sửa ảnh -->
+		<div id="editModal" class="modal-overlay" style="display: none;">
+		    <div class="modal-content">
+		        <div class="modal-header">
+		            <h3>Chỉnh sửa ảnh</h3>
+		            <button id="closeModalBtn" class="modal-close">&times;</button>
+		        </div>
+		        <div class="modal-body">
+		            <div class="crop-container">
+		                <img id="imageToEdit" src="" alt="Ảnh cần chỉnh sửa">
+		            </div>
+		            <div class="edit-controls">
+		                <div class="control-group">
+		                    <label>Tỉ lệ cắt:</label>
+		                    <select id="aspectRatioSelect">
+		                        <option value="NaN">Tự do</option>
+		                        <option value="1.7777777777777777">16:9</option>
+		                        <option value="1.3333333333333333">4:3</option>
+		                        <option value="1">1:1 (Vuông)</option>
+		                        <option value="0.6666666666666666">2:3 (Dọc)</option>
+		                    </select>
+		                </div>
+		                <div class="control-group">
+		                    <label>Giảm chất lượng (Nén): <span id="qualityValue">90%</span></label>
+		                    <input type="range" id="qualityRange" min="10" max="100" value="90">
+		                    <p class="control-note">Mặc định 90% giữ ảnh nét, giảm để giảm dung lượng.</p>
+		                </div>
+		                <div class="control-group">
+		                    <span>Dung lượng dự kiến: <strong id="estimatedSize">-</strong></span>
+		                </div>
+		            </div>
+		        </div>
+		        <div class="modal-footer">
+		            <button id="cancelEditBtn" class="btn btn-secondary">Hủy bỏ</button>
+		            <button id="applyEditBtn" class="btn btn-primary">Áp dụng</button>
+		        </div>
+		    </div>
+		</div>
 
 		<!-- POPUP gallery -->
 		<div id="galleryPopup" class="popup">
