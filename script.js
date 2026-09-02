@@ -933,8 +933,7 @@ let currentEditingId = null;
 init();
 
 async function init() {
-    // TagEngine.init() được giả định đã có sẵn trong môi trường của bạn
-    // await TagEngine.init(); 
+    await TagEngine.init(); // Đã khôi phục TagEngine
     renderFiles();
     setupModalEvents();
 }
@@ -976,19 +975,19 @@ function createFileData(file) {
     const type = file.type.startsWith("image/") ? "image" : "video";
     const extension = getExtension(file.name);
     const baseName = getBaseName(file.name);
-    // analysis được giả định từ TagEngine của bạn
-    const analysis = []; // TagEngine.analyzeFileName(file.name); 
+    // Đã khôi phục lại việc gọi TagEngine để phân tích tên file
+    const analysis = TagEngine.analyzeFileName(file.name); 
     
     return {
         id: crypto.randomUUID(),
-        file, // Lưu file gốc để có thể reset
+        file, 
         type,
         extension,
         name: file.name,
         baseName,
         analysis,
         previewUrl: URL.createObjectURL(file),
-        size: file.size, // Dung lượng hiện tại (sẽ thay đổi khi crop/nén)
+        size: file.size,
         isEdited: false
     };
 }
@@ -1001,6 +1000,14 @@ function getExtension(fileName) {
 function getBaseName(fileName) {
     const lastDot = fileName.lastIndexOf(".");
     return lastDot === -1 ? fileName : fileName.slice(0, lastDot);
+}
+
+function removeExtension(fileName, extension) {
+    const suffix = `.${extension}`;
+    if (fileName.toLowerCase().endsWith(suffix.toLowerCase())) {
+        return fileName.slice(0, -suffix.length);
+    }
+    return fileName.replace(/\.[^/.]+$/, "");
 }
 
 function renderFiles() {
@@ -1054,10 +1061,18 @@ function createFileElement(fileData) {
         fileSize.appendChild(editedTag);
     }
 
+    // Khôi phục phần hiển thị Tag nhận diện
+    const keywordTitle = document.createElement("div");
+    keywordTitle.className = "keyword-title";
+    keywordTitle.textContent = "Tag nhận diện";
+
+    const keywordList = document.createElement("div");
+    keywordList.className = "keyword-list";
+    renderAnalysis(keywordList, fileData.analysis);
+
     const actions = document.createElement("div");
     actions.className = "file-actions";
 
-    // Nút Chỉnh sửa (Chỉ hiện với Image)
     if (fileData.type === "image") {
         const editButton = document.createElement("button");
         editButton.className = "edit-button";
@@ -1067,7 +1082,6 @@ function createFileElement(fileData) {
         actions.appendChild(editButton);
     }
 
-    // Nút Xóa
     const removeButton = document.createElement("button");
     removeButton.className = "remove-button";
     removeButton.type = "button";
@@ -1075,10 +1089,57 @@ function createFileElement(fileData) {
     removeButton.addEventListener("click", () => removeFile(fileData.id));
     actions.appendChild(removeButton);
 
-    info.append(typeLabel, nameLabel, nameRow, fileSize, actions);
+    // Thêm keywordTitle và keywordList vào info
+    info.append(typeLabel, nameLabel, nameRow, fileSize, keywordTitle, keywordList, actions);
     item.append(preview, info);
 
     return item;
+}
+
+// Khôi phục hàm renderAnalysis cũ của bạn
+function renderAnalysis(container, analysis) {
+    container.innerHTML = "";
+    if (analysis.length === 0) {
+        const empty = document.createElement("span");
+        empty.className = "keyword";
+        empty.textContent = "Không có keyword";
+        container.appendChild(empty);
+        return;
+    }
+    analysis.forEach(item => {
+        const element = document.createElement("div");
+        element.className = `tag-analysis tag-${item.status}`;
+        const keyword = document.createElement("span");
+        keyword.className = "tag-keyword";
+        keyword.textContent = item.keyword;
+        element.appendChild(keyword);
+        if (item.status === "matched") {
+            const arrow = document.createElement("span");
+            arrow.textContent = "→";
+            const tag = document.createElement("strong");
+            tag.textContent = item.tag;
+            element.append(arrow, tag);
+        }
+        if (item.status === "suggestion") {
+            const label = document.createElement("span");
+            label.textContent = "Có thể là:";
+            element.appendChild(label);
+            item.suggestions.forEach(suggestion => {
+                const suggestionElement = document.createElement("span");
+                suggestionElement.className = "tag-suggestion";
+                suggestionElement.textContent = suggestion.name;
+                element.appendChild(suggestionElement);
+            });
+        }
+        if (item.status === "new") {
+            const label = document.createElement("span");
+            label.textContent = "Tag mới:";
+            const newTag = document.createElement("strong");
+            newTag.textContent = item.tag;
+            element.append(label, newTag);
+        }
+        container.appendChild(element);
+    });
 }
 
 function createPreview(fileData) {
@@ -1110,10 +1171,17 @@ function formatFileSize(bytes) {
 function updateFileName(id, newName) {
     const fileData = selectedFiles.find(item => item.id === id);
     if (!fileData) return;
-    fileData.baseName = newName;
-    fileData.name = `${newName}.${fileData.extension}`;
-    // Cập nhật lại analysis nếu cần
-    // fileData.analysis = TagEngine.analyzeFileName(fileData.name);
+    const cleanName = removeExtension(newName, fileData.extension);
+    fileData.baseName = cleanName;
+    fileData.name = `${cleanName}.${fileData.extension}`;
+    
+    // Cập nhật lại phân tích tag mỗi khi đổi tên
+    fileData.analysis = TagEngine.analyzeFileName(fileData.name);
+    
+    const item = document.querySelector(`[data-id="${id}"]`);
+    if (!item) return;
+    const keywordList = item.querySelector(".keyword-list");
+    renderAnalysis(keywordList, fileData.analysis);
 }
 
 function removeFile(id) {
@@ -1151,20 +1219,17 @@ function openEditModal(id) {
     const fileData = selectedFiles.find(item => item.id === id);
     if (!fileData) return;
 
-    // Đặt chất lượng mặc định khi mở
     qualityRange.value = 90;
     qualityValue.textContent = "90%";
 
-    // Đọc ảnh gốc để đưa vào Cropper
     const reader = new FileReader();
     reader.onload = function(e) {
         imageToEdit.src = e.target.result;
-        // Khởi tạo Cropper
         if (cropper) cropper.destroy();
         cropper = new Cropper(imageToEdit, {
             viewMode: 1,
             autoCropArea: 0.9,
-            aspectRatio: NaN, // Mặc định tự do
+            aspectRatio: NaN,
             ready() {
                 updateEstimatedSize();
             },
@@ -1192,7 +1257,6 @@ function updateEstimatedSize() {
     const canvas = cropper.getCroppedCanvas();
     if (!canvas) return;
     
-    // Ước lượng dung lượng (tính xấp xỉ base64 string size)
     canvas.toBlob((blob) => {
         if (blob) {
             estimatedSize.textContent = formatFileSize(blob.size);
@@ -1222,10 +1286,9 @@ function applyChanges() {
 
         const fileData = selectedFiles.find(item => item.id === currentEditingId);
         if (fileData) {
-            // Xóa preview URL cũ
             URL.revokeObjectURL(fileData.previewUrl);
             
-            // Cập nhật file mới (luôn là JPEG để tối ưu dung lượng)
+            // Chuyển ảnh đã cắt sang jpg để tối ưu nén
             const newFileName = `${fileData.baseName}_edited.jpg`;
             const newFile = new File([blob], newFileName, { type: "image/jpeg" });
             
@@ -1236,9 +1299,11 @@ function applyChanges() {
             fileData.previewUrl = URL.createObjectURL(newFile);
             fileData.isEdited = true;
 
-            // Đóng popup và render lại danh sách
+            // Cập nhật lại Tag nhận diện dựa trên tên file mới
+            fileData.analysis = TagEngine.analyzeFileName(fileData.name);
+
             closeEditModal();
-            renderFiles();
+            renderFiles(); // Render lại để cập nhật Tag và Dung lượng
         }
     }, 'image/jpeg', quality);
 }
@@ -1267,7 +1332,7 @@ async function submitFiles() {
             setSubmitStatus(`Đang gửi ${i + 1}/${selectedFiles.length}: ${fileData.name}`, "");
 
             const formData = new FormData();
-            formData.append("file", fileData.file); // fileData.file giờ là File đã crop/nén
+            formData.append("file", fileData.file); 
             formData.append("name", fileData.name);
             formData.append("type", fileData.type);
             formData.append("analysis", JSON.stringify(fileData.analysis));
@@ -1306,7 +1371,4 @@ function setSubmitStatus(message, type) {
     submitStatus.textContent = message;
     submitStatus.className = "submit-status";
     if (type) submitStatus.classList.add(type);
-    if (type) {
-        submitStatus.classList.add(type);
-    }
 }
