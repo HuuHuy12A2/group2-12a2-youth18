@@ -394,7 +394,11 @@ async function handleReject() {
         delete submissionCache[submission.id]; // Xoá cache
         selectedSubmissionId = null;  
         await loadSubmissions();  
-        clearReview();  
+        if (submissions.length > 0) {
+            selectSubmission(submissions[0].id);
+        } else {
+            clearReview();
+        } 
         showToast(data.message || "Đã từ chối và xóa file tạm.", "success");  
     } catch (error) {  
         showToast(error.message, "error");  
@@ -428,8 +432,12 @@ async function handleApprove() {
 
         delete submissionCache[submission.id]; // Xoá cache
         selectedSubmissionId = null;  
-        await loadSubmissions();  
-        clearReview();  
+        await loadSubmissions();
+        if (submissions.length > 0) {
+            selectSubmission(submissions[0].id);
+        } else {
+            clearReview();
+        }
         showToast(dataRes.message || "Đã duyệt thành công.", "success");  
     } catch (error) {  
         showToast(error.message, "error");  
