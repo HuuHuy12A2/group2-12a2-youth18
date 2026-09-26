@@ -407,52 +407,42 @@ async function handleReject() {
     }
 }
 
-async function handleApprove+() {
+async function handleApprove() {
     const submission = getSelectedSubmission();
     if (!submission) return;  
 
+    // Lấy dữ liệu cuối cùng (ưu tiên cache)
     const data = getEffectiveData(submission);
+
     if (!data.name) { showToast("Tên file không được để trống.", "error"); return; }  
     if (!Array.isArray(data.tags) || data.tags.length === 0) { showToast("Phải có ít nhất một tag.", "error"); return; }  
 
     const confirmed = await showConfirm(`Xác nhận duyệt "${data.name}"?`);  
     if (!confirmed) return;  
 
-    setReviewButtonsDisabled(true); // Khóa nút tránh bấm liên tục
+    setReviewButtonsDisabled(true);  
     try {  
         const response = await fetch(`${WORKER_URL}/approve`, {  
             method: "POST",  
             headers: { "Authorization": `Bearer ${adminPasswordValue}`, "Content-Type": "application/json" },  
             body: JSON.stringify({ id: submission.id, name: data.name, tags: data.tags })  
         });  
-        
         const dataRes = await parseResponse(response);  
-        if (!response.ok) {
-            // NẾU GẶP LỖI CONFLICT TỪ WORKER
-            if (response.status === 409 || String(dataRes.error).includes("Conflict")) {
-                showToast("GitHub đang đồng bộ dữ liệu. Vui lòng đợi 3s và bấm Duyệt lại.", "info");
-            } else {
-                throw new Error(dataRes.error || "Không thể duyệt bài gửi.");
-            }
-            return; // Dừng lại, không xóa cache, không ẩn ảnh, để user bấm lại sau 3s
+        if (!response.ok) throw new Error(dataRes.error || "Không thể duyệt bài gửi.");  
+
+        delete submissionCache[submission.id]; // Xoá cache
+        selectedSubmissionId = null;  
+        await loadSubmissions();
+        if (submissions.length > 0) {
+            selectSubmission(submissions[0].id);
+        } else {
+            clearReview();
         }
-
-        delete submissionCache[submission.id]; 
-        
-        // Ẩn ảnh ngay lập tức khỏi giao diện (Optimistic Update)
-        submissions = submissions.filter(sub => sub.id !== submission.id);
-        selectedSubmissionId = null;
-        renderSubmissionList();
-        clearReview();
-        
-        // Đồng bộ với server
-        await loadSubmissions();  
-
         showToast(dataRes.message || "Đã duyệt thành công.", "success");  
     } catch (error) {  
         showToast(error.message, "error");  
     } finally {  
-        setReviewButtonsDisabled(false); // BẮT BUỘC MỞ KHÓA NÚT TRONG FINALLY
+        setReviewButtonsDisabled(false);  
     }
 }
 
