@@ -749,7 +749,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 .upload-button:hover, .submit-button:hover, .btn:hover { background: #614421; transform: translateY(-2px); }
 .upload-note { margin-top: 13px !important; font-size: 0.8rem; }
-.file-list { display: grid; width: min(1000px, 100%); gap: 14px; margin: 26px auto; }
+.file-list { display: grid; width: min(1000px, 100%); gap: 14px; margin: 26px auto;
+           background: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/hll.png") center / contain no-repeat;}
 .file-item {
     display: grid;
     width: 100%;
