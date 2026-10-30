@@ -28,10 +28,12 @@ document.addEventListener("DOMContentLoaded", function() {
     // Lắng nghe thay đổi công tắc
     toggleDust.addEventListener('change', (e) => {
         window.fxSettings.dust = e.target.checked;
+        window.dispatchEvent(new Event("fxsettingschange"));
     });
 
     toggleRays.addEventListener('change', (e) => {
         window.fxSettings.rays = e.target.checked;
+        window.dispatchEvent(new Event("fxsettingschange"));
     });
 
         // Lắng nghe thanh trượt chỉnh số lượng bụi

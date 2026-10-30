@@ -1,50 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Thanh xuân tuổi 18</title>
+	<meta name="description" content="Kỷ yếu trực tuyến 12A2 — nơi lưu giữ những khoảnh khắc, lời thương và ước mơ của tuổi học trò.">
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-	<style>
-		html{
-    		scroll-behavior: smooth;
-		}
-		body{
-    		height: 100%;
-    		font-family: Verdana, Arial, Helvetica, sans-serif;
-    		margin: 0;
-    		overflow-x: hidden;
-		}
-		body.lock{
-    		overflow: hidden;
-		}
-		img{
-    		max-width: 100%;
-    		height: auto;
-    		border-radius: 10px;
-    		margin-top: 10px;
-		}
-		article{
-    		scroll-margin-top: 50px;
-    		margin-bottom: 20px;
-    		padding: 15px;
-    		border-radius: 10px;
-    		box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-		}
-		article p:first-child{
-    		font-size: 20px;
-    		font-weight: bold;
-		}
-		form{
-			scroll-margin-top: 50px;
-    		margin-bottom: 20px;
-    		padding: 15px;
-    		border-radius: 10px;
-    		box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-		}
-	</style>
 </head>
 <body>
 	
@@ -55,23 +18,42 @@
 	<canvas id="dust-t" class="dust-cv"></canvas>
 
 
-	<div>
+	<div class="page-shell">
 		<header id="top" class="header-bg">
 			<div class="header">
-				<div class="left-header">
-					<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/logo.png" alt="logo" class="logo">
-				</div>
 				<div class="right-header">
-					<p class="style1">Dấu ấn tuổi 18 - Nơi thanh xuân dừng lại</p>
-					<p class="style2">Lưu giữ khoảnh khắc, bước tiếp ước mơ</p>
+					<div class="hero-identity">
+						<div class="left-header">
+							<img src="https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/logo.png" alt="Biểu trưng lớp 12A2" class="logo">
+						</div>
+						<div class="hero-class">
+							<p class="hero-class-name"><strong>12A2</strong><span>Niên khóa 2023–2026</span></p>
+							<p class="hero-class-details">Sĩ số: 42 · Giáo viên chủ nhiệm: Thầy Võ Bá Thuyên</p>
+						</div>
+					</div>
+					<div class="hero-copy">
+						<h1 class="style1">Dấu ấn tuổi 18 - Nơi thanh xuân dừng lại</h1>
+						<p class="style2">Lưu giữ khoảnh khắc, bước tiếp ước mơ</p>
+					</div>
+					<div class="hero-bottom">
+						<a class="open-popup hero-action" href="#galleryPopup">Mở album ảnh và video</a>
+						<div class="hero-memory">
+							<p class="hero-memory-label">Lời Thổ Lộ</p>
+							<blockquote>Cùng nhau suốt 3 năm cấp ba đã để lại trong bản thân mình nhiều kỉ niệm và cảm xúc đáng nhớ.</blockquote>
+							<cite>Hữu Huy</cite>
+						</div>
+					</div>
 				</div>
 			</div>
 		</header>
 		
 
 		<div class="naviLayout">
-			<div class="menu" onclick="toggleMenu()">☰</div>
-			<nav id="navibar" class="navibar" align="center">
+			<button class="menu" type="button" aria-label="Mở menu" onclick="toggleMenu()">
+				<svg class="icon icon-menu" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+				<svg class="icon icon-close" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg>
+			</button>
+			<nav id="navibar" class="navibar" aria-label="Điều hướng chính">
 				<div class="navi-card">
 					<a class="navi" href="#confs">Thổ lộ </a>
 				</div>
@@ -98,12 +80,16 @@
 				</div>
 
 				<!-- NÚT CÀI ĐẶT HIỆU ỨNG -->
-				<div id="fx-settings-btn" title="Cài đặt hiệu ứng">⚙️</div>
+				<button id="fx-settings-btn" type="button" title="Cài đặt hiệu ứng" aria-label="Cài đặt hiệu ứng">
+					<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h9m4 0h3M4 17h3m4 0h9M13 5v4M7 15v4"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>
+				</button>
 
 				<div id="fx-settings-panel" class="fx-hidden">
 				    <div class="fx-panel-header">
 				        <span>Cài đặt hiệu ứng</span>
-				        <button id="fx-close-btn">✖</button>
+				        <button id="fx-close-btn" type="button" aria-label="Đóng cài đặt hiệu ứng">
+				            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg>
+				        </button>
 				    </div>
 				    
 				    <!-- Bật/Tắt -->
@@ -379,7 +365,7 @@
 		        </div>
 		        <div class="modal-body">
 		            <div class="crop-container">
-		                <img id="imageToEdit" src="" alt="Ảnh cần chỉnh sửa">
+		                <img id="imageToEdit" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Ảnh cần chỉnh sửa">
 		            </div>
 		            <div class="edit-controls">
 		                <div class="control-group">
@@ -414,10 +400,12 @@
 	  		<div class="popup-inner">
 
 	    		<!-- FILTER -->
-	    		<aside class="filter">
-	      			<button class="toggle-filter">Bộ lọc</button><br>
-	      			<span id="totalCount">Tổng số đã được chọn: 0 Media</span>
-	      			<button class="close-btn">✖</button>
+	    		<aside class="filter open">
+	      			<button class="toggle-filter" type="button" aria-expanded="true">Mục lục ký ức <span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span></button>
+	      			<span id="totalCount">Đang mở những trang đầu tiên…</span>
+	      			<button class="close-btn" type="button" aria-label="Đóng album">
+	      				<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg>
+	      			</button>
 	      			<div class="filter-content">
 	        			<button class="tag-btn active" data-tag="all">Tất cả</button>
 	        		<!-- tags sẽ được tạo tự động bằng js-->
@@ -432,6 +420,20 @@
 	      			<!--media cho gallery được nhập từ json và lọc trong js-->
 
 	      			<div class="scroll-trigger"></div>
+					<div class="album-controls" aria-label="Điều hướng album">
+						<button class="album-prev" type="button" disabled>
+							<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg>
+							<span>Trang trước</span>
+						</button>
+						<span class="album-page-label" aria-live="polite">Đang mở album…</span>
+						<label class="album-jump-label" for="albumPageInput">Đến trang</label>
+						<input class="album-page-input" id="albumPageInput" type="number" min="1" value="1" inputmode="numeric" aria-label="Số trang muốn đến">
+						<button class="album-go" type="button">Đi</button>
+						<button class="album-next" type="button" disabled>
+							<span>Trang sau</span>
+							<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"/></svg>
+						</button>
+					</div>
 	    		</section>
 
 	  		</div>
@@ -439,13 +441,21 @@
 
 		<!-- FULLSCREEN VIEWER -->
 		<div class="viewer">
-		  	<button class="prev">❮</button>
+		  	<button class="prev" type="button" aria-label="Ảnh trước">
+		  		<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg>
+		  	</button>
 		  	<div class="viewer-content"></div>
-		  	<button class="next">❯</button>
-		  	<button class="viewer-close">✖</button>
+		  	<button class="next" type="button" aria-label="Ảnh tiếp theo">
+		  		<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"/></svg>
+		  	</button>
+		  	<button class="viewer-close" type="button" aria-label="Đóng ảnh">
+		  		<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg>
+		  	</button>
 		</div>
 		
-		<button id="homeBtn" onclick="scrollToTop()"> ^ </button>
+		<button id="homeBtn" type="button" aria-label="Lên đầu trang" onclick="scrollToTop()">
+			<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5m-6 6 6-6 6 6"/></svg>
+		</button>
 		<footer>
 			<p align="center">© 2026 - Thanh xuân tuổi 18</p>
 			<section class="footer-line">
@@ -504,9 +514,3 @@
 </body>
 
 </html>
-
-
-
-
-
-

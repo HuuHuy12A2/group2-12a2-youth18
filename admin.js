@@ -3,6 +3,7 @@ const WORKER_URL = "https://media-upload-api.contactwithus12a2.workers.dev";
 let submissions = [];
 let selectedSubmissionId = null;
 let adminPasswordValue = "";
+let confirmResolver = null;
 
 // HỆ THỐNG CACHE LƯU TRỮ DỮ LIỆU ĐÃ CHỈNH SỬA
 const submissionCache = {}; 
@@ -51,6 +52,13 @@ newTagInput.addEventListener("keydown", event => { if (event.key === "Enter") { 
 reviewFileName.addEventListener("input", handleFileNameChange);
 rejectButton.addEventListener("click", handleReject);
 approveButton.addEventListener("click", handleApprove);
+confirmOk.addEventListener("click", () => resolveConfirm(true));
+confirmCancel.addEventListener("click", () => resolveConfirm(false));
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !confirmModal.classList.contains("hidden")) {
+        resolveConfirm(false);
+    }
+});
 
 /* ================= HỆ THỐNG THÔNG BÁO & XÁC NHẬN MỚI ================= */
 
@@ -72,23 +80,19 @@ function showToast(message, type = "success") {
 
 function showConfirm(message) {
     return new Promise((resolve) => {
+        if (confirmResolver) resolveConfirm(false);
+        confirmResolver = resolve;
         confirmMessage.textContent = message;
         confirmModal.classList.remove("hidden");
-        
-        const cleanup = (result) => {
-            confirmModal.classList.add("hidden");
-            resolve(result);
-        };
-        
-        // Xoá event cũ nếu có để tránh bị double click
-        const newOk = confirmOk.cloneNode(true);
-        const newCancel = confirmCancel.cloneNode(true);
-        confirmOk.replaceWith(newOk);
-        confirmCancel.replaceWith(newCancel);
-        
-        newOk.addEventListener("click", () => cleanup(true));
-        newCancel.addEventListener("click", () => cleanup(false));
     });
+}
+
+function resolveConfirm(result) {
+    if (!confirmResolver) return;
+    const resolve = confirmResolver;
+    confirmResolver = null;
+    confirmModal.classList.add("hidden");
+    resolve(result);
 }
 
 /* ================= CACHE MANAGEMENT ================= */
