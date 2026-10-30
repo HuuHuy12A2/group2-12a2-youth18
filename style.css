@@ -31,8 +31,8 @@
     --line: rgba(77, 62, 42, 0.25);
     --line-light: rgba(255, 255, 245, 0.62);
     --shadow: 0 22px 58px rgba(0, 0, 0, 0.18);
-    --classroom-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/class.jpg");
-    --paper-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/stair.jpg");
+    --classroom-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/class.jpeg");
+    --paper-image: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/vintage-paper.png");
     --ease: cubic-bezier(0.2, 0.75, 0.2, 1);
 }
 
@@ -708,6 +708,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     padding: 38px;
     border: 1px dashed rgba(112, 82, 45, 0.58);
     background:
+        linear-gradient(135deg, rgba(255, 249, 235, 0.92), rgba(234, 220, 193, 0.84)),
         var(--paper-image) center / cover;
     transition: border-color 200ms ease, background 200ms ease, transform 200ms ease;
 }
@@ -748,8 +749,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 .upload-button:hover, .submit-button:hover, .btn:hover { background: #614421; transform: translateY(-2px); }
 .upload-note { margin-top: 13px !important; font-size: 0.8rem; }
-.file-list { display: grid; width: min(1000px, 100%); gap: 14px; margin: 26px auto;
-           background: url("https://cdn.jsdelivr.net/gh/HuuHuy12A2/images@main/general/hll.jpg") center / contain no-repeat;}
+.file-list { display: grid; width: min(1000px, 100%); gap: 14px; margin: 26px auto; }
 .file-item {
     display: grid;
     width: 100%;
